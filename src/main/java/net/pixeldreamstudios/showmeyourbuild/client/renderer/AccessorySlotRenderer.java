@@ -1,179 +1,233 @@
-package net.pixeldreamstudios.showmeyourbuild.client.renderer;
+    package net.pixeldreamstudios.showmeyourbuild.client.renderer;
+    
+    import dev.emi.trinkets.api.SlotReference;
+    import dev.emi.trinkets.api.TrinketsApi;
+    import net.minecraft.client.MinecraftClient;
+    import net.minecraft.client.font.TextRenderer;
+    import net.minecraft.client.gui.DrawContext;
+    import net.minecraft.entity.player.PlayerEntity;
+    import net.minecraft.item.ItemStack;
+    import net.minecraft.text.Text;
+    import net.minecraft.util.Identifier;
+    import net.minecraft.util.Pair;
+    
+    import java.util.ArrayList;
+    import java.util.List;
+    
+    public class AccessorySlotRenderer {
+        public static final Identifier BACKGROUND_TEXTURE_OVERFLOW = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
 
-import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.TrinketsApi;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
-import net.pixeldreamstudios.showmeyourbuild.client.gui.BuildViewScreen;
+        private static final int SLOT_SIZE = 16;
+        private static final int SLOT_PADDING = 4;
+        private static final int MAX_VISIBLE = 20; // 2 rows of 10
+        private static boolean overflowExpanded = false;
+        private static int overflowX = 0;
+        private static int overflowY = 0;
+        private static int overflowButtonX = 0;
+        private static int overflowButtonY = 0;
+        private static List<ItemStack> overflowStacks = new ArrayList<>();
+        public static boolean debug_message = false;
+        public static void render(
+                DrawContext context,
+                PlayerEntity entity,
+                List<ItemStack> snapshotAccessories,
+                int centerX, int centerY,
+                TextRenderer textRenderer, int mouseX, int mouseY) {
 
-import java.util.List;
+            List<Pair<SlotReference, ItemStack>> equipped = new ArrayList<>();
 
-public class AccessorySlotRenderer {
-
-    private static final int SLOT_SIZE = 16;
-    private static final int SLOT_PADDING = 4;
-    private static final int LEFT_AREA_X_OFFSET = -70;
-    private static final int RIGHT_AREA_X_OFFSET = 70;
-    private static final int AREA_WIDTH = 48;
-    private static final int AREA_HEIGHT = 100;
-    private static final boolean DEBUG_SLOT_AREAS = false;
-
-
-    public static void renderAccessorySlots(DrawContext context, PlayerEntity entity, int centerX, int centerY,
-                                            TextRenderer textRenderer, int mouseX, int mouseY, int page) {
-
-        TrinketsApi.getTrinketComponent(entity).ifPresent(component -> {
-            List<Pair<SlotReference, ItemStack>> equipped = new java.util.ArrayList<>(component.getAllEquipped());
-            List<Pair<SlotReference, ItemStack>> leftItems = new java.util.ArrayList<>();
-            List<Pair<SlotReference, ItemStack>> rightItems = new java.util.ArrayList<>();
-            for (int i = 0; i < equipped.size(); i++) {
-                (i % 2 == 0 ? leftItems : rightItems).add(equipped.get(i));
+            if (snapshotAccessories != null && !snapshotAccessories.isEmpty()) {
+                for (ItemStack stack : snapshotAccessories) {
+                    equipped.add(new Pair<>(null, stack));
+                }
+            } else {
+                TrinketsApi.getTrinketComponent(entity).ifPresent(component -> {
+                    equipped.addAll(component.getAllEquipped());
+                });
             }
-
-            renderSide(context, textRenderer, leftItems, centerX + LEFT_AREA_X_OFFSET, centerY, true, mouseX, mouseY);
-            renderSide(context, textRenderer, rightItems, centerX + RIGHT_AREA_X_OFFSET, centerY, false, mouseX, mouseY);
-        });
-
-    }
-
-
-    private static void renderSide(DrawContext context, TextRenderer textRenderer,
-                                   List<Pair<SlotReference, ItemStack>> items, int originX, int originY,
-                                   boolean isLeft, int mouseX, int mouseY) {
-
-        final int maxPerColumn = 8;
-
-        if (items.size() <= maxPerColumn) {
-            // Centered layout (use full height)
-            int layoutCenterX = originX;
-            int layoutCenterY = originY;
-
-            if (DEBUG_SLOT_AREAS) {
-                int areaX = layoutCenterX - AREA_WIDTH / 2;
-                int areaY = layoutCenterY - AREA_HEIGHT / 2;
-                context.fill(areaX, areaY, areaX + AREA_WIDTH, areaY + AREA_HEIGHT, 0x2200FF00);
+            if (snapshotAccessories != null) {
+                if (debug_message)
+                    System.out.println("[AccessorySlotRenderer] Using snapshot accessories: count=" + snapshotAccessories.size());
+                for (ItemStack stack : snapshotAccessories) {
+                    if (debug_message) System.out.println("  [AccessorySlotRenderer] Stack: " + stack);
+                }
+            } else {
+                if (debug_message)
+                    System.out.println("[AccessorySlotRenderer] No snapshot accessories, falling back to live Trinkets data.");
             }
+            if (equipped.isEmpty()) return;
 
-            List<Position> layout = generateLayout(items.size());
 
-            for (int i = 0; i < items.size(); i++) {
-                renderSlot(context, textRenderer, items.get(i), layoutCenterX + layout.get(i).dx - SLOT_SIZE / 2,
-                        layoutCenterY + layout.get(i).dy - SLOT_SIZE / 2, mouseX, mouseY);
+            int visibleCount = Math.min(equipped.size(), MAX_VISIBLE);
+            int hiddenCount = equipped.size() - MAX_VISIBLE;
+
+            final int slotsPerRow = 10;
+            final int spacing = SLOT_SIZE + SLOT_PADDING;
+
+            int totalRows = (int) Math.ceil(visibleCount / (float) slotsPerRow);
+            int totalHeight = totalRows * spacing;
+            int yStart = centerY - (totalHeight / 2);
+
+            overflowX = 0;
+            overflowY = -10;
+            if (debug_message){
+                TrinketsApi.getTrinketComponent(entity).ifPresentOrElse(
+                        c -> System.out.println("[AccessorySlotRenderer] Trinket slots: " + c.getAllEquipped().size()),
+                        () -> System.out.println("[AccessorySlotRenderer] No trinket component found!")
+                );
             }
-
-        } else {
-            // Split into pages (top and bottom halves)
-            int totalPages = (int) Math.ceil(items.size() / (double) maxPerColumn);
-
-            for (int page = 0; page < totalPages; page++) {
-                int from = page * maxPerColumn;
-                int to = Math.min(from + maxPerColumn, items.size());
-                List<Pair<SlotReference, ItemStack>> pageItems = items.subList(from, to);
-
-                int pageOffsetY = (page == 0) ? -AREA_HEIGHT / 4 : AREA_HEIGHT / 4;
-                int layoutCenterX = originX;
-                int layoutCenterY = originY + pageOffsetY;
-
-                if (DEBUG_SLOT_AREAS) {
-                    int areaX = layoutCenterX - AREA_WIDTH / 2;
-                    int areaY = layoutCenterY - AREA_HEIGHT / 2;
-                    context.fill(areaX, areaY, areaX + AREA_WIDTH, areaY + AREA_HEIGHT, 0x220000FF);
+                for (int i = 0; i < visibleCount; i++) {
+                    int row = i / slotsPerRow;
+                    int col = i % slotsPerRow;
+    
+                    int rowSize = Math.min(slotsPerRow, visibleCount - row * slotsPerRow);
+                    int rowStartX = centerX - (rowSize * spacing) / 2;
+                    int x = rowStartX + col * spacing;
+                    int y = yStart + row * spacing;
+    
+                    if (i == visibleCount - 1) {
+                        overflowX = x + spacing; // position the overflow right after the last slot
+                        overflowY = y;
+                    }
+    
+                    renderSlot(context, textRenderer, equipped.get(i), x, y, mouseX, mouseY);
+                }
+    
+                // Render "+X" button if overflow exists
+            if (hiddenCount > 0) {
+                overflowStacks.clear();
+                for (int i = MAX_VISIBLE; i < equipped.size(); i++) {
+                    overflowStacks.add(equipped.get(i).getRight());
                 }
 
-                List<Position> layout = generateLayout(pageItems.size());
+                int x = overflowX;
+                int y = overflowY - 10;
+                overflowButtonX = x;
+                overflowButtonY = y;
 
-                for (int i = 0; i < pageItems.size(); i++) {
-                    renderSlot(context, textRenderer, pageItems.get(i), layoutCenterX + layout.get(i).dx - SLOT_SIZE / 2,
-                            layoutCenterY + layout.get(i).dy - SLOT_SIZE / 2, mouseX, mouseY);
+                // Draw button background
+                boolean hovered = mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE;
+                int bgColor = hovered ? 0xFF404040 : 0xAA000000;
+                context.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, bgColor);
+
+                // Draw "+X"
+                String moreText = "+" + hiddenCount;
+                int textX = x + (SLOT_SIZE - textRenderer.getWidth(moreText)) / 2;
+                int textY = y + 4;
+                context.drawTextWithShadow(textRenderer, moreText, textX, textY, 0xFFFFFF);
+
+// Draw tooltip on hover, only if overflow is not expanded
+                if (hovered && !overflowExpanded) {
+                    context.drawTooltip(textRenderer, Text.literal("Click to show more"), mouseX, mouseY);
+                }
+
+// Draw overflow if expanded
+                if (overflowExpanded) {
+                    drawOverflowPanel(context, textRenderer, mouseX, mouseY);
+                }
+            }
+
+
+
+        }
+        private static void drawOverflowPanel(DrawContext context, TextRenderer textRenderer,
+                                              int mouseX, int mouseY) {
+            final int slotSize = 16;
+            final int padding = 4;
+            final int columns = 5;
+            int rows = (int) Math.ceil(overflowStacks.size() / (float) columns);
+
+            int panelWidth = columns * (slotSize + padding) + padding;
+            int panelHeight = rows * (slotSize + padding) + padding;
+
+            int panelX = overflowX + SLOT_SIZE + 4;
+            int panelY = overflowY;
+
+            int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
+            int screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
+
+            if (panelX + panelWidth > screenWidth) {
+                panelX = screenWidth - panelWidth - 4;
+            }
+            if (panelY + panelHeight > screenHeight) {
+                panelY = screenHeight - panelHeight - 4;
+            }
+            if (panelX < 0) panelX = 4;
+            if (panelY < 0) panelY = 4;
+
+            // Draw custom background
+            MinecraftClient.getInstance().getTextureManager().bindTexture(BACKGROUND_TEXTURE_OVERFLOW);
+            context.drawTexture(
+                    BACKGROUND_TEXTURE_OVERFLOW,
+                    panelX - 2, panelY - 2,
+                    0, 0,
+                    panelWidth + 4, panelHeight + 4,
+                    panelWidth + 4, panelHeight + 4
+            );
+
+            for (int i = 0; i < overflowStacks.size(); i++) {
+                int row = i / columns;
+                int col = i % columns;
+
+                int x = panelX + padding + col * (slotSize + padding);
+                int y = panelY + padding + row * (slotSize + padding);
+
+                ItemStack stack = overflowStacks.get(i);
+                context.drawItem(stack, x, y);
+                context.drawItemInSlot(textRenderer, stack, x, y);
+
+                if (mouseX >= x && mouseX < x + slotSize && mouseY >= y && mouseY < y + slotSize) {
+                    context.drawItemTooltip(textRenderer, stack, mouseX, mouseY);
                 }
             }
         }
-    }
-    private static void renderSlot(DrawContext context, TextRenderer textRenderer,
-                                   Pair<SlotReference, ItemStack> pair, int x, int y,
-                                   int mouseX, int mouseY) {
 
-        ItemStack stack = pair.getRight();
 
-        context.drawTexture(BuildViewScreen.SLOT_BACKGROUND, x, y, 0, 0, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
-        context.drawItem(stack, x, y);
-        context.drawItemInSlot(textRenderer, stack, x, y);
+        public static boolean mouseClicked(int mouseX, int mouseY) {
+            // Check if click was within the +X box
+            if (mouseX >= overflowButtonX && mouseX < overflowButtonX + SLOT_SIZE &&
+                    mouseY >= overflowButtonY && mouseY < overflowButtonY + SLOT_SIZE) {
+                overflowExpanded = !overflowExpanded;
+                return true;
+            }
 
-        if (mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE) {
-            if (!stack.isEmpty()) {
+
+            // Close panel if click is outside the overflow panel
+            if (overflowExpanded) {
+                final int slotSize = 16;
+                final int padding = 4;
+                final int columns = 5;
+                int rows = (int) Math.ceil(overflowStacks.size() / (float) columns);
+    
+                int panelWidth = columns * (slotSize + padding) + padding;
+                int panelHeight = rows * (slotSize + padding) + padding;
+    
+                int panelX = overflowX + SLOT_SIZE + 4;
+                int panelY = overflowY;
+    
+                boolean inside = mouseX >= panelX && mouseX < panelX + panelWidth &&
+                        mouseY >= panelY && mouseY < panelY + panelHeight;
+    
+                if (!inside) {
+                    overflowExpanded = false;
+                }
+            }
+    
+            return false;
+        }
+    
+        private static void renderSlot(DrawContext context, TextRenderer textRenderer,
+                                       Pair<SlotReference, ItemStack> pair, int x, int y,
+                                       int mouseX, int mouseY) {
+            ItemStack stack = pair.getRight();
+            context.drawTexture(
+                    net.pixeldreamstudios.showmeyourbuild.client.gui.BuildViewScreen.SLOT_BACKGROUND_ACCESSORY,
+                    x, y, 0, 0, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
+            context.drawItem(stack, x, y);
+            context.drawItemInSlot(textRenderer, stack, x, y);
+    
+            if (mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE) {
                 context.drawItemTooltip(textRenderer, stack, mouseX, mouseY);
-            } else if (pair.getLeft() != null && pair.getLeft().inventory() != null) {
-                var slotType = pair.getLeft().inventory().getSlotType();
-                String slotName = slotType.getGroup() + "/" + slotType.getName();
-                context.drawTooltip(textRenderer, Text.literal(slotName + " (Empty)"), mouseX, mouseY);
-            } else if (DEBUG_SLOT_AREAS) {
-                context.drawTooltip(textRenderer, Text.literal("Dummy Slot"), mouseX, mouseY);
             }
         }
     }
-
-
-
-
-    private record Position(int dx, int dy) {}
-
-    private static List<Position> generateLayout(int count) {
-        int spacing = SLOT_SIZE + SLOT_PADDING;
-        List<Position> pos = new java.util.ArrayList<>();
-
-        switch (count) {
-            case 1 -> pos.add(new Position(0, 0));
-            case 2 -> {
-                pos.add(new Position(-spacing / 2, 0));
-                pos.add(new Position(spacing / 2, 0));
-            }
-            case 3 -> {
-                pos.add(new Position(0, -spacing));
-                pos.add(new Position(-spacing, spacing / 2));
-                pos.add(new Position(spacing, spacing / 2));
-            }
-            case 4 -> {
-                pos.add(new Position(-spacing / 2, -spacing / 2));
-                pos.add(new Position(spacing / 2, -spacing / 2));
-                pos.add(new Position(-spacing / 2, spacing / 2));
-                pos.add(new Position(spacing / 2, spacing / 2));
-            }
-            case 5 -> {
-                pos.add(new Position(0, -spacing * 2 / 3));
-                pos.add(new Position(-spacing, 0));
-                pos.add(new Position(spacing, 0));
-                pos.add(new Position(-spacing / 2, spacing));
-                pos.add(new Position(spacing / 2, spacing));
-            }
-            case 6 -> {
-                pos.add(new Position(0, -spacing));
-                pos.add(new Position(-spacing, 0));
-                pos.add(new Position(spacing, 0));
-                pos.add(new Position(-spacing, spacing));
-                pos.add(new Position(0, spacing));
-                pos.add(new Position(spacing, spacing));
-            }
-            default -> {
-                // Circle layout or rows for 7+
-                double angleStep = 2 * Math.PI / count;
-                int radius = spacing;
-                for (int i = 0; i < count; i++) {
-                    double angle = i * angleStep;
-                    int dx = (int) (Math.cos(angle) * radius);
-                    int dy = (int) (Math.sin(angle) * radius);
-                    pos.add(new Position(dx, dy));
-                }
-            }
-        }
-        return pos;
-    }
-
-    public static int getTotalPages(PlayerEntity entity) {
-        return 1;
-    }
-}
-

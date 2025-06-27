@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class ToggleIcon {
+public class LegacyToggleIcon {
 
     private static final Identifier ICON_BAG = Identifier.of("showmeyourbuild", "textures/button/bag.png");
     private static final Identifier ICON_STAR = Identifier.of("showmeyourbuild", "textures/button/star.png");
@@ -18,7 +18,7 @@ public class ToggleIcon {
     private final BooleanSupplier stateSupplier;
     private final Consumer<Boolean> onClick;
 
-    public ToggleIcon(int x, int y, BooleanSupplier stateSupplier, Consumer<Boolean> onClick) {
+    public LegacyToggleIcon(int x, int y, BooleanSupplier stateSupplier, Consumer<Boolean> onClick) {
         this.x = x;
         this.y = y;
         this.width = 16;

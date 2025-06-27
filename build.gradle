@@ -30,6 +30,7 @@ repositories {
 		name = "Ladysnake Libs"
 		url = 'https://maven.ladysnake.org/releases'
 	}
+	maven { url 'https://maven.puffish.net' }
 }
 
 
@@ -44,6 +45,7 @@ dependencies {
 
 	// Trinkets, Accessories support
 	modCompileOnly "dev.emi:trinkets:3.10.0"
+	modCompileOnly("net.puffish:skillsmod:0.16.2+1.21")
 }
 
 processResources {

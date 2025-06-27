@@ -5,7 +5,6 @@ import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -17,10 +16,13 @@ import net.pixeldreamstudios.showmeyourbuild.client.renderer.PlayerSnapshot;
 import net.pixeldreamstudios.showmeyourbuild.client.renderer.SlotRenderer;
 import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
 
-public class BuildViewScreen extends Screen {
+import java.util.List;
 
+public class BuildViewScreen extends Screen {
+    public PlayerSnapshot.SnapshotData snapshot = null;
     public static final Identifier BACKGROUND_TEXTURE = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
     public static final Identifier SLOT_BACKGROUND = Identifier.of("showmeyourbuild", "textures/gui/slot_gui.png");
+    public static final Identifier SLOT_BACKGROUND_ACCESSORY = Identifier.of("showmeyourbuild", "textures/gui/slot_gui3.png");
 
     public final PlayerEntity player;
     public PlayerEntity snapshotPlayer = null;
@@ -28,13 +30,10 @@ public class BuildViewScreen extends Screen {
     public ItemStack mainHand = ItemStack.EMPTY;
     public ItemStack offHand = ItemStack.EMPTY;
     public String displayNameOverride = null;
-    private ToggleIcon toggleIcon;
     public float modelYaw = 0;
     public boolean dragging = false;
     public double lastMouseX;
-    private static boolean showingAccessories = false;
-    private int currentAccessoryPage = 0;
-
+    public static boolean debug_message = false;
     public BuildViewScreen(PlayerEntity player) {
         super(Text.literal("Build Viewer"));
         this.player = player;
@@ -52,7 +51,7 @@ public class BuildViewScreen extends Screen {
         super(Text.literal("Build Viewer"));
         this.player = MinecraftClient.getInstance().player;
 
-        var snapshot = PlayerSnapshot.fromNbt(data, playerName, player);
+        this.snapshot = PlayerSnapshot.fromNbt(data, playerName, player);
         this.snapshotPlayer = snapshot.player();
         this.armorStacks = snapshot.armor();
         this.mainHand = snapshot.mainHand();
@@ -61,114 +60,111 @@ public class BuildViewScreen extends Screen {
     }
 
 
-
-    @Override
-    protected void init() {
-        super.init();
-
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
-
-        if (ModCompat.TRINKETS_LOADED) {
-            PlayerEntity target = snapshotPlayer != null ? snapshotPlayer : player;
-
-            boolean hasAccessories = TrinketsApi.getTrinketComponent(target)
-                    .map(component -> !component.getAllEquipped().isEmpty())
-                    .orElse(false);
-
-            if (hasAccessories) {
-                int iconX = centerX - 128 + 12;
-                int iconY = centerY - 76 + 12;
-                toggleIcon = new ToggleIcon(iconX, iconY,
-                        () -> showingAccessories,
-                        newState -> showingAccessories = newState
-                );
-            }
-        }
-
-
-    }
-
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         super.render(context, mouseX, mouseY, delta);
-        // Draw background
+
+        PlayerEntity target = snapshotPlayer != null ? snapshotPlayer : player;
+
+        List<ItemStack> accessoriesToRender = null;
+        int accessoryCount = 0;
+
+        if (snapshot != null) {
+            accessoriesToRender = snapshot.accessories();
+            accessoryCount = accessoriesToRender != null ? accessoriesToRender.size() : 0;
+        } else if (ModCompat.TRINKETS_LOADED) {
+            accessoriesToRender = TrinketsApi.getTrinketComponent(player)
+                    .map(c -> c.getAllEquipped().stream().map(p -> p.getRight()).toList())
+                    .orElse(null);
+            accessoryCount = accessoriesToRender != null ? accessoriesToRender.size() : 0;
+        }
+
+        boolean hasAccessories = accessoryCount > 0;
+
+
+        // Up to 2 rows of accessories = max 20
+        int accessoryRows = (int) Math.ceil(Math.min(accessoryCount, 20) / 10.0);
+        int extraHeight = 0;
+        if (accessoryRows > 1)
+        {
+            extraHeight =  25;
+        }
+        else if (accessoryRows == 1)
+        {
+            extraHeight = 15;
+        }
+        int baseHeight = 152;
+        int textureHeight = baseHeight + extraHeight;
+        int verticalOffset = -textureHeight / 2;
+
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        context.drawTexture(BACKGROUND_TEXTURE, centerX - 128, centerY - 76, 0, 0, 256, 152, 256, 152);
+        context.drawTexture(BACKGROUND_TEXTURE, centerX - 128, centerY + verticalOffset, 0, 0, 256, textureHeight, 256, textureHeight);
 
-        if (showingAccessories) {
-            int totalPages = AccessorySlotRenderer.getTotalPages(snapshotPlayer != null ? snapshotPlayer : player);
-            AccessorySlotRenderer.renderAccessorySlots(
+        int adjustedCenterY = centerY + verticalOffset + 76;
+
+        SlotRenderer.renderSlots(
+                context,
+                player,
+                snapshotPlayer,
+                armorStacks,
+                mainHand,
+                offHand,
+                centerX,
+                adjustedCenterY,
+                textRenderer,
+                mouseX,
+                mouseY
+        );
+
+        if (hasAccessories) {
+            int accessoryAreaTop = adjustedCenterY + 57;
+            int accessoryAreaHeight = 40;
+            int accessoryAreaCenterY = accessoryAreaTop + accessoryAreaHeight / 2;
+
+            if (debug_message) System.out.println("[BuildViewScreen] Rendering accessories. Snapshot size: " + (accessoriesToRender != null ? accessoriesToRender.size() : "null"));
+
+            AccessorySlotRenderer.render(
                     context,
-                    snapshotPlayer != null ? snapshotPlayer : player,
+                    target,
+                    accessoriesToRender,
                     centerX,
-                    centerY,
+                    accessoryAreaCenterY,
                     textRenderer,
-                    mouseX,
-                    mouseY,
-                    currentAccessoryPage // track page state if needed
-            );
-
-        } else {
-            SlotRenderer.renderSlots(
-                    context,
-                    player,
-                    snapshotPlayer,
-                    armorStacks,
-                    mainHand,
-                    offHand,
-                    centerX,
-                    centerY,
-                    this.textRenderer,
                     mouseX,
                     mouseY
             );
         }
 
 
-        // Draw 3D model
-        BuildViewModelRenderer.drawEntity(centerX, centerY + 55, 50, modelYaw, snapshotPlayer != null ? snapshotPlayer : player);
+        BuildViewModelRenderer.drawEntity(centerX, adjustedCenterY + 55, 50, modelYaw, snapshotPlayer != null ? snapshotPlayer : player);
 
-        // Draw name
         String name = displayNameOverride != null ? displayNameOverride : player.getName().getString();
         String title = name + "'s Build";
-
         int titleWidth = textRenderer.getWidth(title);
+
         context.drawTextWithShadow(
                 textRenderer,
                 Text.literal(title),
-                centerX - (titleWidth / 2),  // center horizontally
-                centerY - 55,
+                centerX - (titleWidth / 2),
+                adjustedCenterY - 55,
                 0xFFFFFF
         );
-
-        if (toggleIcon != null) {
-            toggleIcon.render(context, mouseX, mouseY);
-        }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (toggleIcon != null && toggleIcon.mouseClicked(mouseX, mouseY, button)) {
-            return true; // Handle toggle icon first
-        }
+        if (AccessorySlotRenderer.mouseClicked((int) mouseX, (int) mouseY)) return true;
 
-        if (super.mouseClicked(mouseX, mouseY, button)) {
-            return true;
-        }
-
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
         if (button == 0) {
             dragging = true;
             lastMouseX = mouseX;
             return true;
         }
-
         return false;
     }
-
 
 
     @Override
