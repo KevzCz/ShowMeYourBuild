@@ -19,7 +19,7 @@
 
         private static final int SLOT_SIZE = 16;
         private static final int SLOT_PADDING = 4;
-        private static final int MAX_VISIBLE = 20; // 2 rows of 10
+        private static final int MAX_VISIBLE = 20;
         private static boolean overflowExpanded = false;
         private static int overflowX = 0;
         private static int overflowY = 0;
@@ -86,14 +86,14 @@
                     int y = yStart + row * spacing;
     
                     if (i == visibleCount - 1) {
-                        overflowX = x + spacing; // position the overflow right after the last slot
+                        overflowX = x + spacing;
                         overflowY = y;
                     }
     
                     renderSlot(context, textRenderer, equipped.get(i), x, y, mouseX, mouseY);
                 }
     
-                // Render "+X" button if overflow exists
+
             if (hiddenCount > 0) {
                 overflowStacks.clear();
                 for (int i = MAX_VISIBLE; i < equipped.size(); i++) {
@@ -105,23 +105,23 @@
                 overflowButtonX = x;
                 overflowButtonY = y;
 
-                // Draw button background
+
                 boolean hovered = mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE;
                 int bgColor = hovered ? 0xFF404040 : 0xAA000000;
                 context.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, bgColor);
 
-                // Draw "+X"
+
                 String moreText = "+" + hiddenCount;
                 int textX = x + (SLOT_SIZE - textRenderer.getWidth(moreText)) / 2;
                 int textY = y + 4;
                 context.drawTextWithShadow(textRenderer, moreText, textX, textY, 0xFFFFFF);
 
-// Draw tooltip on hover, only if overflow is not expanded
+
                 if (hovered && !overflowExpanded) {
                     context.drawTooltip(textRenderer, Text.literal("Click to show more"), mouseX, mouseY);
                 }
 
-// Draw overflow if expanded
+
                 if (overflowExpanded) {
                     drawOverflowPanel(context, textRenderer, mouseX, mouseY);
                 }
@@ -155,7 +155,6 @@
             if (panelX < 0) panelX = 4;
             if (panelY < 0) panelY = 4;
 
-            // Draw custom background
             MinecraftClient.getInstance().getTextureManager().bindTexture(BACKGROUND_TEXTURE_OVERFLOW);
             context.drawTexture(
                     BACKGROUND_TEXTURE_OVERFLOW,
@@ -184,7 +183,7 @@
 
 
         public static boolean mouseClicked(int mouseX, int mouseY) {
-            // Check if click was within the +X box
+
             if (mouseX >= overflowButtonX && mouseX < overflowButtonX + SLOT_SIZE &&
                     mouseY >= overflowButtonY && mouseY < overflowButtonY + SLOT_SIZE) {
                 overflowExpanded = !overflowExpanded;
@@ -192,7 +191,7 @@
             }
 
 
-            // Close panel if click is outside the overflow panel
+
             if (overflowExpanded) {
                 final int slotSize = 16;
                 final int padding = 4;

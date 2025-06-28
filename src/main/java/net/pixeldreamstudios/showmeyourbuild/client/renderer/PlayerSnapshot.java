@@ -42,19 +42,46 @@ public class PlayerSnapshot {
 
         if (debug_message) System.out.println("[Snapshot] Creating fake player for: " + displayName);
 
-        // Init gear
+
         ItemStack[] armorStacks = new ItemStack[4];
         ItemStack mainHand = ItemStack.EMPTY;
         ItemStack offHand = ItemStack.EMPTY;
 
         RegistryOps<NbtElement> ops = RegistryOps.of(NbtOps.INSTANCE, client.getNetworkHandler().getRegistryManager());
 
-        // Load armor
         NbtList armorList = data.getList("Armor", NbtElement.COMPOUND_TYPE);
-        armorStacks[3] = armorList.size() > 3 ? ItemStack.CODEC.parse(ops, armorList.get(3)).result().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-        armorStacks[2] = armorList.size() > 2 ? ItemStack.CODEC.parse(ops, armorList.get(2)).result().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-        armorStacks[1] = armorList.size() > 1 ? ItemStack.CODEC.parse(ops, armorList.get(1)).result().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-        armorStacks[0] = armorList.size() > 0 ? ItemStack.CODEC.parse(ops, armorList.get(0)).result().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+
+
+        for (int i = 0; i < 4; i++) {
+            armorStacks[i] = ItemStack.EMPTY;
+        }
+
+        for (int i = 0; i < armorList.size(); i++) {
+            NbtCompound itemNbt = armorList.getCompound(i);
+            ItemStack stack = ItemStack.CODEC.parse(ops, itemNbt).result().orElse(ItemStack.EMPTY);
+            if (stack.isEmpty()) continue;
+
+            int slot = -1;
+
+            if (itemNbt.contains("Slot", NbtElement.BYTE_TYPE)) {
+                slot = itemNbt.getByte("Slot");
+            } else if (stack.getItem() instanceof net.minecraft.item.ArmorItem armorItem) {
+                EquipmentSlot detectedSlot = armorItem.getSlotType();
+                switch (detectedSlot) {
+                    case HEAD -> slot = 3;
+                    case CHEST -> slot = 2;
+                    case LEGS -> slot = 1;
+                    case FEET -> slot = 0;
+                }
+            }
+
+            if (slot >= 0 && slot < 4) {
+                armorStacks[slot] = stack;
+                if (debug_message) System.out.println("[Snapshot] Loaded armor slot " + slot + " = " + stack);
+            } else if (debug_message) {
+                System.out.println("[Snapshot] Could not determine armor slot for: " + stack);
+            }
+        }
 
         if (data.contains("MainHand", NbtElement.COMPOUND_TYPE)) {
             mainHand = ItemStack.CODEC.parse(ops, data.get("MainHand")).result().orElse(ItemStack.EMPTY);
@@ -65,7 +92,7 @@ public class PlayerSnapshot {
             if (debug_message) System.out.println("[Snapshot] OffHand = " + offHand);
         }
 
-        // Fake player entity
+
         OtherClientPlayerEntity fakePlayer = new OtherClientPlayerEntity(world, profile) {
             @Override public boolean isPartVisible(PlayerModelPart part) { return true; }
             @Override public boolean shouldRenderName() { return false; }
@@ -75,17 +102,15 @@ public class PlayerSnapshot {
         fakePlayer.copyPositionAndRotation(fallbackPlayer);
         fakePlayer.setPose(fallbackPlayer.getPose());
 
-        // Detect mods
-        boolean accessoriesLoaded = FabricLoader.getInstance().isModLoaded("accessories");
+
         boolean trinketsLoaded = FabricLoader.getInstance().isModLoaded("trinkets");
         List<ItemStack> accessories = new ArrayList<>();
-        // Handle trinket/accessory parsing
-        // Always parse accessories-style format if it exists
+
         if (data.contains("Trinkets", NbtElement.COMPOUND_TYPE)) {
             NbtCompound trinketNbt = data.getCompound("Trinkets");
             if (debug_message) System.out.println("[Snapshot] Raw trinket NBT: " + trinketNbt);
 
-// Parse and log the slot structure
+
             if (debug_message) System.out.println("[Snapshot] Parsed Trinket Slots:");
             for (String group : trinketNbt.getKeys()) {
                 NbtCompound groupCompound = trinketNbt.getCompound(group);
@@ -118,12 +143,10 @@ public class PlayerSnapshot {
                 }
             }
 
-            // If trinkets is loaded, sync with TrinketsComponent for rendering
             if (trinketsLoaded) {
                 TrinketsApi.getTrinketComponent(fakePlayer).ifPresent(component -> {
                     var registryLookup = client.getNetworkHandler().getRegistryManager();
 
-                    // Filter out non-trinkets entries
                     NbtCompound trinketsOnlyNbt = new NbtCompound();
                     for (String group : trinketNbt.getKeys()) {
                         if (group.startsWith("accessories") || group.equals("data_written_by_accessories")) {
@@ -145,7 +168,7 @@ public class PlayerSnapshot {
 
         if (debug_message) System.out.println("[Snapshot] Applied position/pose from fallback player.");
 
-        // Armor + hand equip
+
         for (int i = 0; i < 4; i++) {
             fakePlayer.getInventory().armor.set(i, armorStacks[i]);
             if (debug_message) System.out.println("[Snapshot] Inventory armor slot " + i + " = " + armorStacks[i]);

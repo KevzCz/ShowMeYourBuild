@@ -2,6 +2,7 @@ package net.pixeldreamstudios.showmeyourbuild.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.trinkets.api.TrinketsApi;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -14,6 +15,9 @@ import net.pixeldreamstudios.showmeyourbuild.client.renderer.AccessorySlotRender
 import net.pixeldreamstudios.showmeyourbuild.client.renderer.BuildViewModelRenderer;
 import net.pixeldreamstudios.showmeyourbuild.client.renderer.PlayerSnapshot;
 import net.pixeldreamstudios.showmeyourbuild.client.renderer.SlotRenderer;
+import net.pixeldreamstudios.showmeyourbuild.network.CategoryCache;
+import net.pixeldreamstudios.showmeyourbuild.network.ClientToServerSkillTreeRequest;
+import net.pixeldreamstudios.showmeyourbuild.network.payload.OpenSkillsPayload;
 import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
 
 import java.util.List;
@@ -23,6 +27,7 @@ public class BuildViewScreen extends Screen {
     public static final Identifier BACKGROUND_TEXTURE = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
     public static final Identifier SLOT_BACKGROUND = Identifier.of("showmeyourbuild", "textures/gui/slot_gui.png");
     public static final Identifier SLOT_BACKGROUND_ACCESSORY = Identifier.of("showmeyourbuild", "textures/gui/slot_gui3.png");
+    public static final Identifier SKILL_BUTTON = Identifier.of("showmeyourbuild", "textures/button/sword16x16.png");
 
     public final PlayerEntity player;
     public PlayerEntity snapshotPlayer = null;
@@ -57,6 +62,12 @@ public class BuildViewScreen extends Screen {
         this.mainHand = snapshot.mainHand();
         this.offHand = snapshot.offHand();
         this.displayNameOverride = playerName;
+        if (ModCompat.PUFFISH_LOADED && data.contains("Skills")) {
+            var skillData = data.getCompound("Skills");
+            var categories = net.pixeldreamstudios.showmeyourbuild.client.SkillTreeSnapshotLoader.load(skillData);
+            CategoryCache.clear();
+            categories.values().forEach(net.pixeldreamstudios.showmeyourbuild.network.CategoryCache::put);
+        }
     }
 
 
@@ -84,7 +95,7 @@ public class BuildViewScreen extends Screen {
         boolean hasAccessories = accessoryCount > 0;
 
 
-        // Up to 2 rows of accessories = max 20
+
         int accessoryRows = (int) Math.ceil(Math.min(accessoryCount, 20) / 10.0);
         int extraHeight = 0;
         if (accessoryRows > 1)
@@ -101,6 +112,31 @@ public class BuildViewScreen extends Screen {
 
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
         context.drawTexture(BACKGROUND_TEXTURE, centerX - 128, centerY + verticalOffset, 0, 0, 256, textureHeight, 256, textureHeight);
+        if (ModCompat.PUFFISH_LOADED) {
+
+            int skillBtnX = centerX - 120 + 5;
+            int skillBtnY = centerY + verticalOffset + 20;
+            int skillBtnSize = 16;
+
+            boolean hoveringSkill = mouseX >= skillBtnX && mouseX < skillBtnX + skillBtnSize &&
+                    mouseY >= skillBtnY && mouseY < skillBtnY + skillBtnSize;
+
+            if (hoveringSkill) {
+                RenderSystem.setShaderColor(1.25f, 1.25f, 1.25f, 1.0f);
+            } else {
+                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+
+            RenderSystem.setShaderTexture(0, SKILL_BUTTON);
+            context.drawTexture(SKILL_BUTTON, skillBtnX, skillBtnY, 0, 0, 16, 16, 16, 16);
+
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+            if (hoveringSkill) {
+                context.drawTooltip(textRenderer, Text.literal("Skills"), mouseX, mouseY);
+            }
+        }
+
 
         int adjustedCenterY = centerY + verticalOffset + 76;
 
@@ -109,14 +145,15 @@ public class BuildViewScreen extends Screen {
                 player,
                 snapshotPlayer,
                 armorStacks,
-                mainHand,
-                offHand,
+                snapshot != null ? mainHand : player.getMainHandStack(),
+                snapshot != null ? offHand  : player.getOffHandStack(),
                 centerX,
                 adjustedCenterY,
                 textRenderer,
                 mouseX,
                 mouseY
         );
+
 
         if (hasAccessories) {
             int accessoryAreaTop = adjustedCenterY + 57;
@@ -151,11 +188,58 @@ public class BuildViewScreen extends Screen {
                 adjustedCenterY - 55,
                 0xFFFFFF
         );
+
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (AccessorySlotRenderer.mouseClicked((int) mouseX, (int) mouseY)) return true;
+
+        if (ModCompat.PUFFISH_LOADED) {
+            int centerX = this.width / 2;
+            int centerY = this.height / 2;
+
+
+            int accessoryCount = 0;
+            if (snapshot != null) {
+                accessoryCount = snapshot.accessories() != null ? snapshot.accessories().size() : 0;
+            } else if (ModCompat.TRINKETS_LOADED) {
+                accessoryCount = TrinketsApi.getTrinketComponent(player)
+                        .map(c -> c.getAllEquipped().size())
+                        .orElse(0);
+            }
+
+            int accessoryRows = (int) Math.ceil(Math.min(accessoryCount, 20) / 10.0);
+            int extraHeight = 0;
+            if (accessoryRows > 1) {
+                extraHeight = 25;
+            } else if (accessoryRows == 1) {
+                extraHeight = 15;
+            }
+
+            int baseHeight = 152;
+            int textureHeight = baseHeight + extraHeight;
+            int verticalOffset = -textureHeight / 2;
+
+            int skillBtnX = centerX - 120 + 5;
+            int skillBtnY = centerY + verticalOffset + 20;
+
+            if (button == 0 &&
+                    mouseX >= skillBtnX && mouseX < skillBtnX + 16 &&
+                    mouseY >= skillBtnY && mouseY < skillBtnY + 16) {
+
+                if (snapshot != null) {
+                    var preloadedCategories = CategoryCache.getAll();
+                    var maybeFirst = preloadedCategories.keySet().stream().findFirst();
+                    ReadOnlySkillsScreen.open(preloadedCategories.values().stream().toList(), maybeFirst);
+                }
+                else {
+
+                    ClientPlayNetworking.send(new OpenSkillsPayload(displayNameOverride));
+                }
+                return true;
+            }
+        }
 
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
         if (button == 0) {
@@ -165,6 +249,8 @@ public class BuildViewScreen extends Screen {
         }
         return false;
     }
+
+
 
 
     @Override

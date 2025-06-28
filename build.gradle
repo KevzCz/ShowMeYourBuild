@@ -45,7 +45,7 @@ dependencies {
 
 	// Trinkets, Accessories support
 	modCompileOnly "dev.emi:trinkets:3.10.0"
-	modCompileOnly("net.puffish:skillsmod:0.16.2+1.21")
+	modCompileOnly files("libs/puffish_skills-0.16.3-1.21-fabric.jar")
 }
 
 processResources {

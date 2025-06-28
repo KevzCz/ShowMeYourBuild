@@ -16,25 +16,21 @@ public class BuildDataSerializer {
         RegistryOps<NbtElement> ops = RegistryOps.of(NbtOps.INSTANCE, player.getRegistryManager());
         NbtCompound root = new NbtCompound();
 
-        // Armor
         NbtList armorList = new NbtList();
         for (ItemStack stack : player.getInventory().armor) {
             ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(armorList::add);
         }
         root.put("Armor", armorList);
 
-        // Hands
         ItemStack.CODEC.encodeStart(ops, player.getMainHandStack()).result().ifPresent(nbt -> root.put("MainHand", nbt));
         ItemStack.CODEC.encodeStart(ops, player.getOffHandStack()).result().ifPresent(nbt -> root.put("OffHand", nbt));
 
-        // Name
         root.putString("Name", player.getName().getString());
         if (ModCompat.TRINKETS_LOADED) {
             TrinketsApi.getTrinketComponent(player).ifPresent(component -> {
                 NbtCompound trinketNbt = new NbtCompound();
                 var wrapperLookup = player.getRegistryManager();
-                component.writeToNbt(trinketNbt, wrapperLookup); // ✅ CORRECT type
-
+                component.writeToNbt(trinketNbt, wrapperLookup);
                 root.put("Trinkets", trinketNbt);
             });
         }

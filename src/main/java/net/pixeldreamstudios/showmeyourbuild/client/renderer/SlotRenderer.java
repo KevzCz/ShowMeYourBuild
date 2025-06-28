@@ -11,10 +11,10 @@ import net.pixeldreamstudios.showmeyourbuild.client.gui.BuildViewScreen;
 public class SlotRenderer {
 
     private static final int[][] ARMOR_SLOTS = new int[][] {
-            {-57, -33},  // Helmet (top-left)
-            { 40, -33},  // Chestplate (top-right)
-            {-57,  20},  // Leggings (bottom-left)
-            { 40,  20},  // Boots (bottom-right)
+            {-57, -33},
+            { 40, -33},
+            {-57,  20},
+            { 40,  20},
     };
 
     private static final int[] MAIN_HAND_SLOT = {-90, -15};
