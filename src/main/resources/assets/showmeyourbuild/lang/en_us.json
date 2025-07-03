@@ -1,3 +1,6 @@
 {
-
+  "key.showmeyourbuild.inspect_build": "Inspect Player",
+  "key.showmeyourbuild.inspect_open_build_screen": "Open Build",
+  "key.showmeyourbuild.send_build": "Send Build",
+  "category.showmeyourbuild": "Show me your Build"
 }
