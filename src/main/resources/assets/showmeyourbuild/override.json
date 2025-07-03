@@ -1,0 +1,136 @@
+{
+  "attributes": {
+    "minecraft:generic.armor": {
+      "icon": "showmeyourbuild:textures/gui/armor.png",
+      "hidden": false
+    },
+    "minecraft:generic.armor_toughness": {
+      "icon": "showmeyourbuild:textures/gui/toughness.png",
+      "hidden": false
+    },
+    "minecraft:generic.attack_damage": {
+      "icon": "showmeyourbuild:textures/gui/axe.png",
+      "hidden": false
+    },
+    "minecraft:generic.attack_knockback": {
+      "icon": "minecraft:textures/item/iron_sword.png",
+      "hidden": false
+    },
+    "minecraft:generic.attack_speed": {
+      "icon": "minecraft:textures/gui/sprites/hud/hotbar_attack_indicator_progress.png",
+      "hidden": false
+    },
+    "minecraft:generic.burning_time": {
+      "icon": "minecraft:textures/item/blaze_powder.png",
+      "hidden": false
+    },
+    "minecraft:generic.explosion_knockback_resistance": {
+      "icon": "minecraft:textures/block/obsidian.png",
+      "hidden": false
+    },
+    "minecraft:generic.fall_damage_multiplier": {
+      "icon": "minecraft:textures/item/leather_boots.png",
+      "hidden": false
+    },
+    "minecraft:generic.flying_speed": {
+      "icon": "minecraft:textures/item/elytra.png",
+      "hidden": false
+    },
+    "minecraft:generic.follow_range": {
+      "icon": "minecraft:textures/item/spyglass.png",
+      "hidden": false
+    },
+    "minecraft:generic.gravity": {
+      "icon": "minecraft:textures/block/sand.png",
+      "hidden": false
+    },
+    "minecraft:generic.jump_strength": {
+      "icon": "minecraft:textures/item/rabbit_foot.png",
+      "hidden": false
+    },
+    "minecraft:generic.knockback_resistance": {
+      "icon": "minecraft:textures/item/slime_ball.png",
+      "hidden": false
+    },
+    "minecraft:generic.luck": {
+      "icon": "minecraft:textures/item/emerald.png",
+      "hidden": false
+    },
+    "minecraft:generic.max_absorption": {
+      "icon": "minecraft:textures/item/golden_apple.png",
+      "hidden": false
+    },
+    "minecraft:generic.max_health": {
+      "icon": "minecraft:textures/item/apple.png",
+      "hidden": false
+    },
+    "minecraft:generic.movement_efficiency": {
+      "icon": "minecraft:textures/item/sugar.png",
+      "hidden": false
+    },
+    "minecraft:generic.movement_speed": {
+      "icon": "minecraft:textures/item/sugar.png",
+      "hidden": false
+    },
+    "minecraft:generic.oxygen_bonus": {
+      "icon": "minecraft:textures/item/pufferfish.png",
+      "hidden": false
+    },
+    "minecraft:generic.safe_fall_distance": {
+      "icon": "minecraft:textures/item/feather.png",
+      "hidden": false
+    },
+    "minecraft:generic.scale": {
+      "icon": "minecraft:textures/item/slime_ball.png",
+      "hidden": false
+    },
+    "minecraft:generic.step_height": {
+      "icon": "minecraft:textures/block/ladder.png",
+      "hidden": false
+    },
+    "minecraft:generic.water_movement_efficiency": {
+      "icon": "minecraft:textures/item/water_bucket.png",
+      "hidden": false
+    },
+    "minecraft:player.block_break_speed": {
+      "icon": "minecraft:textures/item/iron_pickaxe.png",
+      "hidden": false
+    },
+    "minecraft:player.block_interaction_range": {
+      "icon": "minecraft:textures/block/scaffolding_top.png",
+      "hidden": false
+    },
+    "minecraft:player.entity_interaction_range": {
+      "icon": "minecraft:textures/item/lead.png",
+      "hidden": false
+    },
+    "minecraft:player.mining_efficiency": {
+      "icon": "minecraft:textures/item/diamond_pickaxe.png",
+      "hidden": false
+    },
+    "minecraft:player.sneaking_speed": {
+      "icon": "minecraft:textures/item/leather_boots.png",
+      "hidden": false
+    },
+    "minecraft:player.submerged_mining_speed": {
+      "icon": "minecraft:textures/item/prismarine_crystals.png",
+      "hidden": false
+    },
+    "minecraft:player.sweeping_damage_ratio": {
+      "icon": "minecraft:textures/item/iron_sword.png",
+      "hidden": false
+    },
+    "minecraft:zombie.spawn_reinforcements": {
+      "icon": "minecraft:textures/entity/zombie/zombie.png",
+      "hidden": false
+    }
+  },
+  "groups": {
+    "minecraft": {
+      "icon": "minecraft:textures/item/diamond.png",
+      "label": "Minecraft",
+      "tooltip": "Minecraft's built-in attributes",
+      "hidden": false
+    }
+  }
+}

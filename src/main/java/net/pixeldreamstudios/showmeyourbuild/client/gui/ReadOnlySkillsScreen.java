@@ -39,9 +39,6 @@ public class ReadOnlySkillsScreen extends SkillsScreen {
         for (ClientCategoryData category : categories) {
             data.putCategory(category.getConfig().id(), category);
         }
-        for (ClientCategoryData category : categories) {
-            System.out.println(" - " + category.getConfig().id());
-        }
 
         MinecraftClient.getInstance().setScreen(new ReadOnlySkillsScreen(data, categoryId));
     }

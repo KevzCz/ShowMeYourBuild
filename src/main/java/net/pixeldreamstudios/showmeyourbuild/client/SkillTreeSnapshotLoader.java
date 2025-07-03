@@ -45,8 +45,6 @@ public class SkillTreeSnapshotLoader {
                     // skip invalid
                 }
             }
-            System.out.println("[Debug] SnapshotLoader input keys: " + root.getKeys());
-            System.out.println("[Debug] Parsing skill data for: " + categoryId);
             ClientCategoryData fake = FakeClientCategoryFactory.create(config, stateMap, spent, earned, level, xp, xpRequired);
             result.put(categoryId, fake);
         }

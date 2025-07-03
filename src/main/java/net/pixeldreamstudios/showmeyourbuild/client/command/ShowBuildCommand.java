@@ -30,7 +30,7 @@ public class ShowBuildCommand {
                                         MinecraftClient.getInstance().setScreen(new BuildViewScreen(data));
                                     } else {
                                         MinecraftClient.getInstance().player.sendMessage(
-                                                Text.literal("❌ No build snapshot found for ID: " + snapshotId),
+                                                Text.literal("No build snapshot found for ID: " + snapshotId),
                                                 false
                                         );
                                     }

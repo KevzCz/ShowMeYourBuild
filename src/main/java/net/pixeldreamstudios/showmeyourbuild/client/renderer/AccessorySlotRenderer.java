@@ -45,16 +45,16 @@
                     equipped.addAll(component.getAllEquipped());
                 });
             }
-            if (snapshotAccessories != null) {
-                if (debug_message)
-                    System.out.println("[AccessorySlotRenderer] Using snapshot accessories: count=" + snapshotAccessories.size());
-                for (ItemStack stack : snapshotAccessories) {
-                    if (debug_message) System.out.println("  [AccessorySlotRenderer] Stack: " + stack);
-                }
-            } else {
-                if (debug_message)
-                    System.out.println("[AccessorySlotRenderer] No snapshot accessories, falling back to live Trinkets data.");
-            }
+//            if (snapshotAccessories != null) {
+//                if (debug_message)
+//                    System.out.println("[AccessorySlotRenderer] Using snapshot accessories: count=" + snapshotAccessories.size());
+//                for (ItemStack stack : snapshotAccessories) {
+//                    if (debug_message) System.out.println("  [AccessorySlotRenderer] Stack: " + stack);
+//                }
+//            } else {
+//                if (debug_message)
+//                    System.out.println("[AccessorySlotRenderer] No snapshot accessories, falling back to live Trinkets data.");
+//            }
             if (equipped.isEmpty()) return;
 
 
@@ -70,12 +70,12 @@
 
             overflowX = 0;
             overflowY = -10;
-            if (debug_message){
-                TrinketsApi.getTrinketComponent(entity).ifPresentOrElse(
-                        c -> System.out.println("[AccessorySlotRenderer] Trinket slots: " + c.getAllEquipped().size()),
-                        () -> System.out.println("[AccessorySlotRenderer] No trinket component found!")
-                );
-            }
+//            if (debug_message){
+//                TrinketsApi.getTrinketComponent(entity).ifPresentOrElse(
+//                        c -> System.out.println("[AccessorySlotRenderer] Trinket slots: " + c.getAllEquipped().size()),
+//                        () -> System.out.println("[AccessorySlotRenderer] No trinket component found!")
+//                );
+//            }
                 for (int i = 0; i < visibleCount; i++) {
                     int row = i / slotsPerRow;
                     int col = i % slotsPerRow;
