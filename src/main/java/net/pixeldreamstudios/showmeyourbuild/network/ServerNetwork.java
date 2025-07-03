@@ -7,7 +7,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.pixeldreamstudios.showmeyourbuild.network.payload.*;
 import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
-import net.puffish.skillsmod.api.SkillsAPI;
 
 public class ServerNetwork {
     public static void register() {
@@ -67,5 +66,6 @@ public class ServerNetwork {
                 }
             });
         });
+
     }
 }

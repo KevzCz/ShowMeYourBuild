@@ -1,5 +1,5 @@
     package net.pixeldreamstudios.showmeyourbuild.client.gui;
-    
+
     import com.mojang.blaze3d.systems.RenderSystem;
     import dev.emi.trinkets.api.TrinketsApi;
     import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -20,13 +20,14 @@
     import net.pixeldreamstudios.showmeyourbuild.network.CategoryCache;
     import net.pixeldreamstudios.showmeyourbuild.network.payload.OpenSkillsPayload;
     import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
-    
+
     import java.util.List;
     
     public class BuildViewScreen extends Screen {
         public PlayerSnapshot.SnapshotData snapshot = null;
         private long statsToggleTime = 0;
         private static final int BOUNCE_HEIGHT = 5;
+
         public static final Identifier BACKGROUND_TEXTURE = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
         public static final Identifier SLOT_BACKGROUND = Identifier.of("showmeyourbuild", "textures/gui/slot_gui.png");
         public static final Identifier SLOT_BACKGROUND_ACCESSORY = Identifier.of("showmeyourbuild", "textures/gui/slot_gui3.png");
@@ -53,7 +54,7 @@
             BUILD,
             STATS
         }
-    
+
         private ViewMode currentView = ViewMode.BUILD;
         public BuildViewScreen(PlayerEntity player) {
             super(Text.literal("Build Viewer"));
@@ -63,14 +64,14 @@
             this.mainHand = player.getMainHandStack();
             this.offHand = player.getOffHandStack();
 
-            // ✅ Correct: Load fresh attributes from live player
             if (ModCompat.ATTRIBUTE_PANEL_LOADED) {
                 NbtCompound attrNbt = AttributePanelAPI.getAttributeSnapshot(player);
+                StatsViewRenderer.setLiveTargetPlayer(player); // 👈 add this
                 StatsViewRenderer.loadAttributes(attrNbt);
                 BonusDataStore.loadFromNbt(attrNbt);
             }
-
         }
+
 
 
         public BuildViewScreen(NbtCompound data) {
@@ -86,7 +87,7 @@
             // ✅ Fix: Load attributes from the snapshot NBT, not live player
             if (data.contains("Attributes", NbtElement.COMPOUND_TYPE)) {
                 NbtCompound attrNbt = data.getCompound("Attributes");
-                StatsViewRenderer.loadAttributes(attrNbt);
+                StatsViewRenderer.loadAttributes(attrNbt, true);
                 BonusDataStore.loadFromNbt(attrNbt);
             }
     
@@ -114,7 +115,7 @@
             super.render(context, mouseX, mouseY, delta);
 
             PlayerEntity target = snapshotPlayer != null ? snapshotPlayer : player;
-    
+
             List<ItemStack> accessoriesToRender = null;
             int accessoryCount = 0;
     
@@ -261,15 +262,21 @@
                 }
 
                 if (showBonusPanel) {
+                    if (snapshot == null && ModCompat.ATTRIBUTE_PANEL_LOADED) {
+                        NbtCompound liveAttrs = AttributePanelAPI.getAttributeSnapshot(player);
+                        StatsViewRenderer.loadAttributes(liveAttrs);
+                    }
+
                     final int bonusPanelWidth = 100;
-                    final int panelX = centerX - 128 - bonusPanelWidth - 4; // fixed offset from left of GUI
+                    final int panelX = centerX - 128 - bonusPanelWidth - 4;
                     final int panelY = bonusBtnY;
 
                     BonusesPanelRenderer.render(context, panelX, panelY, bonusPanelWidth, textRenderer, mouseX, mouseY);
                 }
-    
-    
-    
+
+
+
+
                 BuildViewModelRenderer.drawEntity(centerX, adjustedCenterY + 55, 50, modelYaw, snapshotPlayer != null ? snapshotPlayer : player);
     
     
@@ -286,6 +293,11 @@
                 );
     
             } else if (currentView == ViewMode.STATS) {
+                if (snapshot == null && ModCompat.ATTRIBUTE_PANEL_LOADED) {
+                    NbtCompound attrNbt = AttributePanelAPI.getAttributeSnapshot(player);
+                    StatsViewRenderer.loadAttributes(attrNbt);
+                    BonusDataStore.loadFromNbt(attrNbt);
+                }
                 StatsViewRenderer.render(context, centerX, centerY, textRenderer, mouseX, mouseY);
 
                 long elapsed = System.currentTimeMillis() - statsToggleTime;

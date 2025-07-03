@@ -77,7 +77,13 @@ public class StatGroup extends StatEntry {
             child.column = this.column;
         }
     }
+    public String getLabel() {
+        return label;
+    }
 
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
+    }
     @Override
     public void renderTooltip(DrawContext ctx, TextRenderer tr, int mouseX, int mouseY, int x, int y, float scrollY) {
         if (tooltip == null) return;

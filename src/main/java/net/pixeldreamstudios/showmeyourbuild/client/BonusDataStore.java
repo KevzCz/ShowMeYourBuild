@@ -81,31 +81,53 @@ public class BonusDataStore {
         return currentBonuses;
     }
 
-    public static Map<Text, Double> getCondensedBonuses() {
-        Map<Text, Double> condensed = new LinkedHashMap<>();
+    public static Map<Text, Double> getCondensedBonusesFrom(NbtCompound nbt) {
+        List<BonusEntry> bonuses = new ArrayList<>();
+        Set<Identifier> excluded = EXCLUDED_ATTRIBUTES;
 
-        for (var entry : currentBonuses) {
+        for (String key : nbt.getKeys()) {
+            Identifier id = Identifier.tryParse(key);
+            if (id == null || excluded.contains(id)) continue;
+
+            NbtCompound attrData = nbt.getCompound(key);
+            double base = attrData.getDouble("Base");
+            double finalVal = attrData.getDouble("Final");
+
+            if (Double.isNaN(finalVal) || Math.abs(finalVal - base) < 0.001) continue;
+
+            double delta = finalVal - base;
+
+            Text label = Registries.ATTRIBUTE.containsId(id)
+                    ? Text.translatable(Registries.ATTRIBUTE.get(id).getTranslationKey())
+                    : Text.literal(formatName(id.getPath()));
+
+            boolean merged = false;
+            for (var existingKey : bonuses) {
+                if (existingKey.attributeId.equals(id)) {
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged) {
+                bonuses.add(new BonusEntry(id, base, finalVal, List.of(), List.of(), List.of()));
+            }
+        }
+
+        // === Condense
+        Map<Text, Double> condensed = new LinkedHashMap<>();
+        for (var entry : bonuses) {
             Identifier id = entry.attributeId();
             double delta = entry.finalValue() - entry.base();
 
-            if (Math.abs(delta) < 0.001) continue;
+            Text label = Registries.ATTRIBUTE.containsId(id)
+                    ? Text.translatable(Registries.ATTRIBUTE.get(id).getTranslationKey())
+                    : Text.literal(formatName(id.getPath()));
 
-            // Get the translated name from the attribute registry
-            var attribute = Registries.ATTRIBUTE.get(id);
-            Text label;
-
-            if (attribute != null) {
-                label = Text.translatable(attribute.getTranslationKey());
-            } else {
-                // Fallback to a simple formatted name if not found
-                label = Text.literal(formatName(id.getPath()));
-            }
-
-            // Merge translated Text objects (by string content)
             boolean merged = false;
-            for (var existingKey : condensed.keySet()) {
-                if (existingKey.getString().equals(label.getString())) {
-                    condensed.put(existingKey, condensed.get(existingKey) + delta);
+            for (Text key : condensed.keySet()) {
+                if (key.getString().equals(label.getString())) {
+                    condensed.put(key, condensed.get(key) + delta);
                     merged = true;
                     break;
                 }
@@ -118,6 +140,7 @@ public class BonusDataStore {
 
         return condensed;
     }
+
 
     private static String formatName(String path) {
         String[] words = path.split("_");

@@ -5,6 +5,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.pixeldreamstudios.showmeyourbuild.client.BonusDataStore;
+import net.pixeldreamstudios.showmeyourbuild.client.renderer.stats.StatsViewRenderer;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,9 @@ public class BonusesPanelRenderer {
             int mouseX,
             int mouseY
     ) {
-        Map<Text, Double> condensedBonuses = BonusDataStore.getCondensedBonuses();
+        Map<Text, Double> condensedBonuses = BonusDataStore.getCondensedBonusesFrom(
+                StatsViewRenderer.getCurrentAttributes()
+        );
 
         float scale = 0.75f;
         int padding = 6;
