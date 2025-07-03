@@ -129,7 +129,7 @@
     "minecraft": {
       "icon": "minecraft:textures/item/diamond.png",
       "label": "Minecraft",
-      "tooltip": "Minecraft's built-in attributes",
+      "tooltip": "Minecraft Attributes",
       "hidden": false
     }
   }

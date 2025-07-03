@@ -1,11 +1,13 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.RotationAxis;
-
+@Environment(EnvType.CLIENT)
 public class BuildViewModelRenderer {
     public static void drawEntity(int x, int y, int scale, float yaw, PlayerEntity player) {
         MinecraftClient client = MinecraftClient.getInstance();

@@ -1,10 +1,12 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
+@Environment(EnvType.CLIENT)
 public class StatRow extends StatEntry {
     private final Identifier icon;
     private final String label;
@@ -12,8 +14,8 @@ public class StatRow extends StatEntry {
     final String tooltip;
     private final boolean indent;
 
-    private final double delta; // 🔸 Add delta
-    private final int color;    // 🔸 Color based on delta
+    private final double delta;
+    private final int color;
 
     public StatRow(Identifier icon, String label, String value, String tooltip, boolean indent, int column, double delta) {
         this.icon = icon;
@@ -50,7 +52,7 @@ public class StatRow extends StatEntry {
 
         if (value != null && !value.isBlank()) {
             int valueX = drawX + (int) (tr.getWidth(truncatedLabel + ":") * 0.7f) + 5;
-            StatsRenderUtils.drawScaledText(ctx, tr, value, valueX, y + 2, color); // 👈 color is based on delta
+            StatsRenderUtils.drawScaledText(ctx, tr, value, valueX, y + 2, color);
         }
     }
 

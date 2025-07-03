@@ -1,5 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild.client.gui;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 import net.puffish.skillsmod.client.data.ClientCategoryData;
@@ -8,7 +10,7 @@ import net.puffish.skillsmod.client.gui.SkillsScreen;
 
 import java.util.List;
 import java.util.Optional;
-
+@Environment(EnvType.CLIENT)
 public class ReadOnlySkillsScreen extends SkillsScreen {
     public ReadOnlySkillsScreen(ClientSkillScreenData data, Optional<Identifier> categoryId) {
         super(data, categoryId);
@@ -34,7 +36,6 @@ public class ReadOnlySkillsScreen extends SkillsScreen {
     }
 
     public static void open(List<ClientCategoryData> categories, Optional<Identifier> categoryId) {
-        // Build data object
         ClientSkillScreenData data = new ClientSkillScreenData();
         for (ClientCategoryData category : categories) {
             data.putCategory(category.getConfig().id(), category);

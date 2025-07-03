@@ -73,7 +73,6 @@ public class BonusDataStore {
             ));
         }
 
-        // Sort for consistent order
         currentBonuses.sort(Comparator.comparing(e -> e.attributeId.toString()));
     }
 
@@ -114,7 +113,6 @@ public class BonusDataStore {
             }
         }
 
-        // === Condense
         Map<Text, Double> condensed = new LinkedHashMap<>();
         for (var entry : bonuses) {
             Identifier id = entry.attributeId();

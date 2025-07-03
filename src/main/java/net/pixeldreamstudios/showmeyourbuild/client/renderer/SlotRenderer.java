@@ -1,13 +1,15 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.pixeldreamstudios.showmeyourbuild.client.gui.BuildViewScreen;
-
+@Environment(EnvType.CLIENT)
 public class SlotRenderer {
 
     private static final int[][] ARMOR_SLOTS = new int[][] {
@@ -26,7 +28,6 @@ public class SlotRenderer {
                                    int centerX, int centerY, TextRenderer textRenderer, int mouseX, int mouseY) {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        // === Armor slots ===
         for (int i = 0; i < 4; i++) {
             int x = centerX + ARMOR_SLOTS[i][0];
             int y = centerY + ARMOR_SLOTS[i][1];
@@ -53,7 +54,6 @@ public class SlotRenderer {
             }
         }
 
-        // === Main hand ===
         int mx = centerX + MAIN_HAND_SLOT[0];
         int my = centerY + MAIN_HAND_SLOT[1];
         context.drawTexture(BuildViewScreen.SLOT_BACKGROUND, mx, my, 0, 0, HAND_SLOT_SIZE, HAND_SLOT_SIZE, HAND_SLOT_SIZE, HAND_SLOT_SIZE);
@@ -68,7 +68,6 @@ public class SlotRenderer {
             }
         }
 
-        // === Offhand ===
         mx = centerX + OFF_HAND_SLOT[0];
         my = centerY + OFF_HAND_SLOT[1];
         context.drawTexture(BuildViewScreen.SLOT_BACKGROUND, mx, my, 0, 0, HAND_SLOT_SIZE, HAND_SLOT_SIZE, HAND_SLOT_SIZE, HAND_SLOT_SIZE);

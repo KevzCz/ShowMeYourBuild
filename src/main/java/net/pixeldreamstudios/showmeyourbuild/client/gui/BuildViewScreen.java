@@ -2,10 +2,13 @@
 
     import com.mojang.blaze3d.systems.RenderSystem;
     import dev.emi.trinkets.api.TrinketsApi;
+    import net.fabricmc.api.EnvType;
+    import net.fabricmc.api.Environment;
     import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
     import net.minecraft.client.MinecraftClient;
     import net.minecraft.client.gui.DrawContext;
     import net.minecraft.client.gui.screen.Screen;
+    import net.minecraft.entity.effect.StatusEffectInstance;
     import net.minecraft.entity.player.PlayerEntity;
     import net.minecraft.item.ItemStack;
     import net.minecraft.nbt.NbtCompound;
@@ -15,19 +18,22 @@
     import net.minecraft.util.math.MathHelper;
     import net.pixeldreamstudios.attributepanel.api.AttributePanelAPI;
     import net.pixeldreamstudios.showmeyourbuild.client.BonusDataStore;
+    import net.pixeldreamstudios.showmeyourbuild.client.LiveEffectStore;
     import net.pixeldreamstudios.showmeyourbuild.client.renderer.*;
     import net.pixeldreamstudios.showmeyourbuild.client.renderer.stats.StatsViewRenderer;
     import net.pixeldreamstudios.showmeyourbuild.network.CategoryCache;
     import net.pixeldreamstudios.showmeyourbuild.network.payload.OpenSkillsPayload;
+    import net.pixeldreamstudios.showmeyourbuild.network.payload.RequestLiveEffectsPayload;
     import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
 
     import java.util.List;
-    
+    @Environment(EnvType.CLIENT)
     public class BuildViewScreen extends Screen {
         public PlayerSnapshot.SnapshotData snapshot = null;
         private long statsToggleTime = 0;
         private static final int BOUNCE_HEIGHT = 5;
-
+        private long lastEffectRequestTime = 0;
+        private static final long EFFECT_REQUEST_COOLDOWN_MS = 1000;
         public static final Identifier BACKGROUND_TEXTURE = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
         public static final Identifier SLOT_BACKGROUND = Identifier.of("showmeyourbuild", "textures/gui/slot_gui.png");
         public static final Identifier SLOT_BACKGROUND_ACCESSORY = Identifier.of("showmeyourbuild", "textures/gui/slot_gui3.png");
@@ -41,7 +47,8 @@
         public final PlayerEntity player;
         private boolean showPotionOverlay = false;
         private boolean showBonusPanel = false;
-    
+        private final String localPlayerName = MinecraftClient.getInstance().getSession().getUsername();
+
         public PlayerEntity snapshotPlayer = null;
         public ItemStack[] armorStacks = null;
         public ItemStack mainHand = ItemStack.EMPTY;
@@ -66,7 +73,7 @@
 
             if (ModCompat.ATTRIBUTE_PANEL_LOADED) {
                 NbtCompound attrNbt = AttributePanelAPI.getAttributeSnapshot(player);
-                StatsViewRenderer.setLiveTargetPlayer(player); // 👈 add this
+                StatsViewRenderer.setLiveTargetPlayer(player);
                 StatsViewRenderer.loadAttributes(attrNbt);
                 BonusDataStore.loadFromNbt(attrNbt);
             }
@@ -84,7 +91,6 @@
 
             this.snapshot = PlayerSnapshot.fromNbt(data, playerName, player);
 
-            // ✅ Fix: Load attributes from the snapshot NBT, not live player
             if (data.contains("Attributes", NbtElement.COMPOUND_TYPE)) {
                 NbtCompound attrNbt = data.getCompound("Attributes");
                 StatsViewRenderer.loadAttributes(attrNbt, true);
@@ -96,8 +102,8 @@
             this.mainHand = snapshot.mainHand();
             this.offHand = snapshot.offHand();
             this.displayNameOverride = playerName;
-    
-            // Optional: load skills if present
+
+
             if (ModCompat.PUFFISH_LOADED && data.contains("Skills")) {
                 var skillData = data.getCompound("Skills");
                 var categories = net.pixeldreamstudios.showmeyourbuild.client.SkillTreeSnapshotLoader.load(skillData);
@@ -145,8 +151,6 @@
     
             RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
             context.drawTexture(BACKGROUND_TEXTURE, centerX - 128, centerY + verticalOffset, 0, 0, 256, textureHeight, 256, textureHeight);
-            if (ModCompat.PUFFISH_LOADED) {
-    
                 int skillBtnX = centerX - 120 + 5;
                 int skillBtnY = centerY + verticalOffset + 20;
                 int skillBtnSize = 16;
@@ -165,10 +169,12 @@
     
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     
-                if (hoveringSkill) {
+                if (hoveringSkill & ModCompat.PUFFISH_LOADED) {
                     context.drawTooltip(textRenderer, Text.literal("Skills"), mouseX, mouseY);
+                } else if (hoveringSkill & !ModCompat.PUFFISH_LOADED) {
+                    context.drawTooltip(textRenderer, Text.literal("Install Puffisher's Skills"), mouseX, mouseY);
                 }
-            }
+
     
             int statsBtnX = centerX + 120 - 21;
             int statsBtnY = centerY + verticalOffset + 20;
@@ -245,7 +251,7 @@
                 context.drawTexture(POTIONS_VIEWER, potionsBtnX, potionsBtnY, 0, 0, 16, 16, 16, 16);
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     
-    // === Bonus Panel Toggle Button ===
+
                 int bonusBtnX = centerX - 120 + 5;
                 int bonusBtnY = centerY - textureHeight / 2 + 48;
                 boolean hoveringBonus = mouseX >= bonusBtnX && mouseX < bonusBtnX + 16 &&
@@ -301,7 +307,7 @@
                 StatsViewRenderer.render(context, centerX, centerY, textRenderer, mouseX, mouseY);
 
                 long elapsed = System.currentTimeMillis() - statsToggleTime;
-                final int duration = 10000; // show for 10 seconds
+                final int duration = 10000;
                 if (elapsed < duration) {
                     float bouncePhase = (elapsed % 1000) / 1000f;
                     double bounce = Math.sin(bouncePhase * Math.PI * 2) * BOUNCE_HEIGHT;
@@ -319,11 +325,29 @@
                     context.drawTextWithShadow(textRenderer, msg, msgX, msgY, color);
                 }
             }
+
+            if (hoveringPotions && snapshotPlayer == null && !displayNameOverride.equals(localPlayerName)) {
+
+                long now = System.currentTimeMillis();
+
+                if (now - lastEffectRequestTime > EFFECT_REQUEST_COOLDOWN_MS) {
+                    lastEffectRequestTime = now;
+                    ClientPlayNetworking.send(new RequestLiveEffectsPayload(displayNameOverride));
+                }
+            }
+
+
             if (hoveringPotions) {
                 PlayerEntity effectSource = snapshotPlayer != null ? snapshotPlayer : player;
                 boolean isSnapshot = snapshotPlayer != null;
-    
-                var effects = effectSource.getStatusEffects().stream().toList();
+
+                List<StatusEffectInstance> effects;
+                if (snapshotPlayer == null && !displayNameOverride.equals(localPlayerName)) {
+                    effects = LiveEffectStore.get(displayNameOverride);
+                } else {
+                    effects = effectSource.getStatusEffects().stream().toList();
+                }
+
                 if (!effects.isEmpty()) {
                     var spriteManager = MinecraftClient.getInstance().getStatusEffectSpriteManager();
     
@@ -347,13 +371,11 @@
                     int boxHeight = effects.size() * lineHeight + padding * 2;
                     int screenWidth = this.width;
                     int screenHeight = this.height;
-    
-    // Clamp X (right edge)
+
                     if (x + boxWidth > screenWidth) {
                         x = screenWidth - boxWidth - 4;
                     }
-    
-    // Clamp Y (bottom edge)
+
                     if (y + boxHeight > screenHeight) {
                         y = screenHeight - boxHeight - 4;
                     }
@@ -418,8 +440,7 @@
             int baseHeight = 152;
             int textureHeight = baseHeight + extraHeight;
             int verticalOffset = -textureHeight / 2;
-    
-            // === Handle Skills Button (only if PUFFISH is loaded) ===
+
             if (ModCompat.PUFFISH_LOADED) {
                 int skillBtnX = centerX - 120 + 5;
                 int skillBtnY = centerY + verticalOffset + 20;
@@ -438,8 +459,7 @@
                     return true;
                 }
             }
-    
-            // === Handle Stats/Build Toggle Button ===
+
             int statsBtnX = centerX + 120 - 21;
             int statsBtnY = centerY + verticalOffset + 20;
 
@@ -453,7 +473,6 @@
                 return true;
             }
 
-            // === Handle Stat Group Expansion Clicks ===
             if (currentView == ViewMode.STATS) {
                 StatsViewRenderer.handleClick((int) mouseX, (int) mouseY, centerX, centerY);
     

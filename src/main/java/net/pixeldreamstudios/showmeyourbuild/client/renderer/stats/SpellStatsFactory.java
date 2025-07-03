@@ -52,11 +52,11 @@ public class SpellStatsFactory {
             Identifier icon = ICONS.getOrDefault(key, GROUP_ICON);
             String valueStr = formatValue(key, finalVal);
 
-            // Pass delta for sorting + coloring
+
             group.addChild(new StatRow(icon, "", valueStr, tooltip, true, 0, delta));
         }
 
-        // Bring changed attributes to top (highest delta magnitude first)
+
         group.getChildren().sort(Comparator.<StatRow>comparingDouble(r -> -Math.abs(r.getDelta())));
 
         return group;
@@ -76,7 +76,7 @@ public class SpellStatsFactory {
 
     private static String formatValue(String key, double val) {
         if (PERCENT_KEYS.contains(key)) {
-            return "%+.0f%%".formatted((val - 100.0)); // 100% is baseline
+            return "%+.0f%%".formatted((val - 100.0));
         } else {
             return val == (int) val ? "%+.0f".formatted(val) : "%+.1f".formatted(val);
         }

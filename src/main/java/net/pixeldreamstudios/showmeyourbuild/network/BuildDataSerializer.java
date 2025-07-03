@@ -38,7 +38,7 @@ public class BuildDataSerializer {
         if (ModCompat.ATTRIBUTE_PANEL_LOADED) {
             NbtCompound attributes = AttributePanelAPI.getAttributeSnapshot(player);
             root.put("Attributes", attributes);
-            System.out.print(attributes);
+//            System.out.print(attributes);
         }
 
 

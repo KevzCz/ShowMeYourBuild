@@ -1,11 +1,13 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
+@Environment(EnvType.CLIENT)
 public class CustomStatsLayoutRenderer {
 
     private static final Identifier HEART = Identifier.of("minecraft", "textures/particle/heart.png");
@@ -21,7 +23,7 @@ public class CustomStatsLayoutRenderer {
         int textPadding = 5;
         int rowHeight = 14;
 
-        // Row 1
+
         Identifier[] icons1 = {HEART, ARMOR, ARMOR_TOUGHNESS, SPEED};
         String[] values1 = {
                 getAttrFinal(attrs, "minecraft:generic.max_health"),
@@ -44,7 +46,7 @@ public class CustomStatsLayoutRenderer {
             }
         }
 
-        // Row 2
+
         Identifier[] icons2 = {ATTACK_DAMAGE, ATTACK_SPEED, LUCK};
         String[] values2 = {
                 getAttrFinal(attrs, "minecraft:generic.attack_damage"),
@@ -55,7 +57,7 @@ public class CustomStatsLayoutRenderer {
                 "Attack Damage", "Attack Speed", "Luck"
         };
 
-        int row2BaseX = x + (spacing * 4 - spacing * 3) / 2; // Center 3 icons under 4
+        int row2BaseX = x + (spacing * 4 - spacing * 3) / 2;
 
         int iconY = y + rowHeight;
         for (int i = 0; i < icons2.length; i++) {
@@ -67,7 +69,7 @@ public class CustomStatsLayoutRenderer {
             }
         }
 
-        // Divider
+
         ctx.fill(x, iconY + 14, x + 215, iconY + 15, 0xFFAAAAAA);
     }
 

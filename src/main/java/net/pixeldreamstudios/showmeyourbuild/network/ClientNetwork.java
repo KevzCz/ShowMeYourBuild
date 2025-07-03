@@ -1,5 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild.network;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -10,10 +12,11 @@ import net.minecraft.util.Identifier;
 import net.pixeldreamstudios.showmeyourbuild.client.BuildDataStore;
 import net.pixeldreamstudios.showmeyourbuild.client.gui.ReadOnlySkillsScreen;
 import net.pixeldreamstudios.showmeyourbuild.network.payload.SendBuildSnapshotPayload;
+import net.pixeldreamstudios.showmeyourbuild.network.payload.SendLiveEffectsPayload;
 import net.pixeldreamstudios.showmeyourbuild.network.payload.SendSkillTreeSnapshotPayload;
 
 import java.util.Optional;
-
+@Environment(EnvType.CLIENT)
 public class ClientNetwork {
     public static void register() {
         PayloadTypeRegistry.playS2C().register(SendBuildSnapshotPayload.ID, SendBuildSnapshotPayload.CODEC);
@@ -41,19 +44,38 @@ public class ClientNetwork {
                 String snapshotId = payload.snapshotId();
                 String name = payload.playerName();
                 NbtCompound data = payload.data();
+
+                // Save under snapshot ID and name
                 BuildDataStore.save(snapshotId, data);
-
-                Text message = Text.literal("")
-                        .append(Text.literal("["+name + "'s Build] ")
-                                .styled(style -> style.withClickEvent(
-                                        new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/internal_show_build " + snapshotId)
-                                ))
-                        );
-                MinecraftClient.getInstance().player.sendMessage(message, false);
-
                 BuildDataStore.save(name, data);
+
+                // Create clickable chat message
+                Text message = Text.literal("")
+                        .append(Text.literal("[" + name + "'s Build]")
+                                .styled(style -> style
+                                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/internal_show_build " + snapshotId))
+                                        .withColor(0x00AAD4)
+                                        .withUnderline(true)
+                                        .withHoverEvent(new net.minecraft.text.HoverEvent(
+                                                net.minecraft.text.HoverEvent.Action.SHOW_TEXT,
+                                                Text.literal("Click to view " + name + "'s Build")
+                                        ))
+                                )
+                        );
+
+                MinecraftClient.getInstance().player.sendMessage(message, false);
             });
         });
 
+        PayloadTypeRegistry.playS2C().register(SendLiveEffectsPayload.ID, SendLiveEffectsPayload.CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(SendLiveEffectsPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                String playerName = payload.playerName();
+                NbtCompound effectData = payload.effectData();
+
+                net.pixeldreamstudios.showmeyourbuild.client.LiveEffectStore.save(playerName, effectData);
+            });
+        });
     }
 }

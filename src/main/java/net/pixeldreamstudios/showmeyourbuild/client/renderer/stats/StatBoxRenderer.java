@@ -1,12 +1,14 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Environment(EnvType.CLIENT)
 public class StatBoxRenderer {
     private static final int ENTRY_HEIGHT = 18;
     private static final int COLUMN_GAP = 10;

@@ -1,7 +1,9 @@
     package net.pixeldreamstudios.showmeyourbuild.client.renderer;
-    
+
     import dev.emi.trinkets.api.SlotReference;
     import dev.emi.trinkets.api.TrinketsApi;
+    import net.fabricmc.api.EnvType;
+    import net.fabricmc.api.Environment;
     import net.minecraft.client.MinecraftClient;
     import net.minecraft.client.font.TextRenderer;
     import net.minecraft.client.gui.DrawContext;
@@ -10,10 +12,10 @@
     import net.minecraft.text.Text;
     import net.minecraft.util.Identifier;
     import net.minecraft.util.Pair;
-    
+
     import java.util.ArrayList;
     import java.util.List;
-    
+    @Environment(EnvType.CLIENT)
     public class AccessorySlotRenderer {
         public static final Identifier BACKGROUND_TEXTURE_OVERFLOW = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
 

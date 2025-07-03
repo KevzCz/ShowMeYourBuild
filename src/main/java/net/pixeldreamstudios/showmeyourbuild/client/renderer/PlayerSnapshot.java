@@ -2,6 +2,8 @@ package net.pixeldreamstudios.showmeyourbuild.client.renderer;
 
 import com.mojang.authlib.GameProfile;
 import dev.emi.trinkets.api.TrinketsApi;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.OtherClientPlayerEntity;
@@ -22,7 +24,7 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
+@Environment(EnvType.CLIENT)
 public class PlayerSnapshot {
 
     public record SnapshotData(

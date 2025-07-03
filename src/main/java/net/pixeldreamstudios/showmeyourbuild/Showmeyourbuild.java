@@ -1,10 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild;
 
 import net.fabricmc.api.ModInitializer;
-
-import net.pixeldreamstudios.showmeyourbuild.network.ClientNetwork;
 import net.pixeldreamstudios.showmeyourbuild.network.ServerNetwork;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +11,6 @@ public class Showmeyourbuild implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ClientNetwork.register();
 		ServerNetwork.register();
 	}
 }

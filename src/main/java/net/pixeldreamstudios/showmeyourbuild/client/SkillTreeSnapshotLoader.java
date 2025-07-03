@@ -42,7 +42,6 @@ public class SkillTreeSnapshotLoader {
                     Skill.State state = Skill.State.valueOf(skillsNbt.getString(skillId));
                     stateMap.put(skillId, state);
                 } catch (IllegalArgumentException ignored) {
-                    // skip invalid
                 }
             }
             ClientCategoryData fake = FakeClientCategoryFactory.create(config, stateMap, spent, earned, level, xp, xpRequired);

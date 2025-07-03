@@ -1,8 +1,10 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-
+@Environment(EnvType.CLIENT)
 public class StatsRenderUtils {
     public static void drawScaledText(DrawContext ctx, TextRenderer tr, String text, int x, int y, int color) {
         ctx.getMatrices().push();
@@ -23,7 +25,7 @@ public class StatsRenderUtils {
 
         return (i <= 0) ? ellipsis : text.substring(0, i) + ellipsis;
     }
-    // Returns [labelStartX, labelEndX, valueStartX, valueEndX]
+
     public static int[] computeTruncatedLabelAndValueBounds(
             TextRenderer tr, String label, String value, int startX, float scale, int maxLabelWidth
     ) {

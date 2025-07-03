@@ -64,7 +64,7 @@ public class AttributeGroupFactory {
                     : groupLabel + " Attributes";
 
             StatGroup group = namespaceGroups.computeIfAbsent(groupLabel, lbl ->
-                    new StatGroup(groupIcon, groupLabel, null, false, groupTooltip, -1) // temp column
+                    new StatGroup(groupIcon, groupLabel, null, false, groupTooltip, -1)
             );
 
 

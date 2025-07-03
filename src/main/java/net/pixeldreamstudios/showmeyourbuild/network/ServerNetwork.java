@@ -3,6 +3,7 @@ package net.pixeldreamstudios.showmeyourbuild.network;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.pixeldreamstudios.showmeyourbuild.network.payload.*;
@@ -26,8 +27,30 @@ public class ServerNetwork {
                     ServerPlayNetworking.send(p, new SendBuildSnapshotPayload(snapshotId, player.getName().getString(), data));
 
                 }
+
             });
         });
+        PayloadTypeRegistry.playC2S().register(RequestLiveEffectsPayload.ID, RequestLiveEffectsPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(RequestLiveEffectsPayload.ID, (payload, context) -> {
+            String targetName = payload.targetName();
+            ServerPlayerEntity requester = context.player();
+
+            requester.server.execute(() -> {
+                ServerPlayerEntity target = requester.server.getPlayerManager().getPlayer(targetName);
+
+                if (target != null) {
+                    NbtCompound data = new NbtCompound();
+                    NbtList potionList = BuildDataSerializer.serialize(target).getList("PotionEffects", 10);
+                    data.put("PotionEffects", potionList);
+
+                    ServerPlayNetworking.send(requester, new SendLiveEffectsPayload(targetName, data));
+                } else {
+                    requester.sendMessage(Text.literal("Could not find player: " + targetName), false);
+                }
+            });
+        });
+
         PayloadTypeRegistry.playC2S().register(RequestSkillTreePayload.ID, RequestSkillTreePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestSkillTreePayload.ID, (payload, context) -> {
             ServerPlayerEntity requester = context.player();

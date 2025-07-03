@@ -1,5 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
@@ -9,7 +11,7 @@ import net.pixeldreamstudios.showmeyourbuild.client.renderer.stats.StatsViewRend
 
 import java.util.List;
 import java.util.Map;
-
+@Environment(EnvType.CLIENT)
 public class BonusesPanelRenderer {
 
     public static void render(
@@ -33,7 +35,7 @@ public class BonusesPanelRenderer {
         int panelWidth = maxWidth;
         int panelHeight = condensedBonuses.size() * lineHeight + padding * 2;
 
-        // === Tooltip-style background with border ===
+
         context.fillGradient(anchorX, anchorY, anchorX + panelWidth, anchorY + panelHeight, 0xF0101010, 0xF0101010);
         context.fill(anchorX, anchorY, anchorX + panelWidth, anchorY + 1, 0xFF555555);
         context.fill(anchorX, anchorY + panelHeight - 1, anchorX + panelWidth, anchorY + panelHeight, 0xFF555555);
@@ -71,16 +73,13 @@ public class BonusesPanelRenderer {
             matrices.translate(anchorX + padding, y + (lineHeight - scaledFontHeight) / 2f, 0);
             matrices.scale(scale, scale, 1.0f);
 
-            // Draw label
             context.drawText(textRenderer, Text.literal(trimmedLabel), 0, 0, color, false);
 
-            // Draw value
             int valueX = totalInnerWidth - valuePixelWidth;
             context.drawText(textRenderer, Text.literal(valueStr), valueX, 0, color, false);
 
             matrices.pop();
 
-            // Always show tooltip for full label when hovering label area
             int mouseRelativeX = mouseX - anchorX - padding;
             int mouseRelativeY = mouseY - y;
 

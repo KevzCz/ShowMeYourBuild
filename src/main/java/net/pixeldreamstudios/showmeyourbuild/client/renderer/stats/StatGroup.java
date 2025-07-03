@@ -1,5 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
@@ -8,7 +10,7 @@ import net.pixeldreamstudios.showmeyourbuild.client.gui.BuildViewScreen;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Environment(EnvType.CLIENT)
 public class StatGroup extends StatEntry {
     private final Identifier icon;
     final String label;
@@ -36,12 +38,10 @@ public class StatGroup extends StatEntry {
         int slotX = columnX + ((100 - SLOT_WIDTH) / 2);
         ctx.drawTexture(BuildViewScreen.STATS_SLOT, slotX, y, 0, 0, SLOT_WIDTH, 16, SLOT_WIDTH, 16);
 
-        // Fixed position for arrow (left margin)
         int arrowX = slotX + 8;
         int centerY = y + 4;
         ctx.drawTextWithShadow(tr, expanded ? "▼" : "▶", arrowX, centerY, 0xAAAAAA);
 
-        // --- Center the icon + label + value block ---
         int labelWidth = (int) (tr.getWidth(label + ":") * scale);
         int valueWidth = value != null ? (int) (tr.getWidth(value) * scale) : 0;
         int iconWidth = icon != null ? iconSize + 4 : 0;
@@ -51,7 +51,6 @@ public class StatGroup extends StatEntry {
 
         int nextX = contentStartX;
 
-        // Icon
         if (icon != null) {
             ctx.getMatrices().push();
             ctx.getMatrices().translate(nextX, centerY, 0);
@@ -61,11 +60,9 @@ public class StatGroup extends StatEntry {
             nextX += iconSize + 4;
         }
 
-        // Label
         StatsRenderUtils.drawScaledText(ctx, tr, label + ":", nextX, centerY, 0xFFFFFF);
         nextX += labelWidth;
 
-        // Value (optional)
         if (value != null && !value.isBlank()) {
             nextX += 5;
             StatsRenderUtils.drawScaledText(ctx, tr, value, nextX, centerY, 0xAAAAAA);

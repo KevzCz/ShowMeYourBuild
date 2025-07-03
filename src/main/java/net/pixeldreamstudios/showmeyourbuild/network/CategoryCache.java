@@ -1,11 +1,13 @@
 package net.pixeldreamstudios.showmeyourbuild.network;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
 import net.puffish.skillsmod.client.data.ClientCategoryData;
 
 import java.util.HashMap;
 import java.util.Map;
-
+@Environment(EnvType.CLIENT)
 public class CategoryCache {
     private static final Map<Identifier, ClientCategoryData> categoryMap = new HashMap<>();
 

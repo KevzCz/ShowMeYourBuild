@@ -54,7 +54,7 @@ public class AttributeOverrideLoader implements IdentifiableResourceReloadListen
                         JsonObject.class
                 );
 
-                // === Attribute Overrides ===
+
                 if (root.has("attributes")) {
                     JsonObject attributes = root.getAsJsonObject("attributes");
                     for (Map.Entry<String, JsonElement> entry : attributes.entrySet()) {
@@ -74,7 +74,6 @@ public class AttributeOverrideLoader implements IdentifiableResourceReloadListen
                     }
                 }
 
-                // === Group Overrides ===
                 if (root.has("groups")) {
                     JsonObject groups = root.getAsJsonObject("groups");
                     for (Map.Entry<String, JsonElement> entry : groups.entrySet()) {

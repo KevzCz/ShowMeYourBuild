@@ -1,5 +1,7 @@
 package net.pixeldreamstudios.showmeyourbuild.client.renderer.stats;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -13,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+@Environment(EnvType.CLIENT)
 public class StatsViewRenderer {
     private static boolean isSnapshot = false;
 
@@ -21,7 +23,7 @@ public class StatsViewRenderer {
     private static final int BOX_HEIGHT = 135;
     private static final int CLIP_MARGIN = 20;
     private static final boolean DEBUG = false;
-    private static PlayerEntity liveTargetPlayer = null; // 👈 New field
+    private static PlayerEntity liveTargetPlayer = null;
     private static final List<StatEntry> rawEntries = new ArrayList<>();
     private static final List<StatEntry> visibleEntries = new ArrayList<>();
     public static void setLiveTargetPlayer(PlayerEntity player) {
@@ -51,7 +53,7 @@ public class StatsViewRenderer {
             initializeAttributeGroups();
         }
 
-        refreshExpandedEntries(); // Always refresh before rendering
+        refreshExpandedEntries();
 
         context.drawTextWithShadow(tr, "Stats", centerX - (tr.getWidth("Stats") / 2), centerY - 55, 0xAAAAAA);
 
@@ -68,12 +70,12 @@ public class StatsViewRenderer {
     public static void loadAttributes(NbtCompound attributesNbt, boolean snapshot) {
         currentAttributes = attributesNbt.copy();
         isSnapshot = snapshot;
-        if (snapshot) liveTargetPlayer = null; // 👈 clear it if it's a snapshot
+        if (snapshot) liveTargetPlayer = null;
         initializeAttributeGroups();
     }
 
     public static void loadAttributes(NbtCompound attributesNbt) {
-        loadAttributes(attributesNbt, false); // default = live
+        loadAttributes(attributesNbt, false);
     }
     public static void handleScroll(double amount) {
         StatBoxRenderer.scroll(amount);
@@ -103,7 +105,7 @@ public class StatsViewRenderer {
     }
 
     private static void initializeAttributeGroups() {
-        // === Save expansion states
+
         final Set<String> expandedLabels = new HashSet<>();
         for (StatEntry entry : rawEntries) {
             if (entry instanceof StatGroup group && group.isExpanded()) {
@@ -118,23 +120,21 @@ public class StatsViewRenderer {
 
         if (currentAttributes != null && !currentAttributes.isEmpty()) {
             StatGroupColumnAssigner columnAssigner = new StatGroupColumnAssigner();
-
-            // === Include Spell Power if available
-            StatGroup spellGroup = SpellStatsFactory.createFromAttributes(currentAttributes);
-            if (!spellGroup.getChildren().isEmpty()) {
-                spellGroup.column = columnAssigner.assignColumn(spellGroup);
-                spellGroup.propagateColumnToChildren();
-                spellGroup.setExpanded(expandedLabels.contains(spellGroup.getLabel())); // 👈 Restore state
-                rawEntries.add(spellGroup);
+            if(ModCompat.SPELLPOWER_LOADED) {
+                StatGroup spellGroup = SpellStatsFactory.createFromAttributes(currentAttributes);
+                if (!spellGroup.getChildren().isEmpty()) {
+                    spellGroup.column = columnAssigner.assignColumn(spellGroup);
+                    spellGroup.propagateColumnToChildren();
+                    spellGroup.setExpanded(expandedLabels.contains(spellGroup.getLabel()));
+                    rawEntries.add(spellGroup);
+                }
             }
-
-            // === General Groups
             List<StatGroup> groups = AttributeGroupFactory.buildAttributeGroups(currentAttributes);
 
             for (StatGroup group : groups) {
                 group.column = columnAssigner.assignColumn(group);
                 group.propagateColumnToChildren();
-                group.setExpanded(expandedLabels.contains(group.getLabel())); // 👈 Restore state
+                group.setExpanded(expandedLabels.contains(group.getLabel()));
                 rawEntries.add(group);
             }
         }
