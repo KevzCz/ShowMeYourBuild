@@ -11,8 +11,14 @@ import net.pixeldreamstudios.showmeyourbuild.util.ModCompat;
 
 public class ServerNetwork {
     public static void register() {
+        PayloadTypeRegistry.playS2C().register(SendLiveEffectsPayload.ID, SendLiveEffectsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(RequestSendBuildPayload.ID, RequestSendBuildPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(OpenSkillsPayload.ID, OpenSkillsPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(RequestLiveEffectsPayload.ID, RequestLiveEffectsPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(RequestSkillTreePayload.ID, RequestSkillTreePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SendSkillTreeSnapshotPayload.ID, SendSkillTreeSnapshotPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SendBuildSnapshotPayload.ID, SendBuildSnapshotPayload.CODEC);
+
         ServerPlayNetworking.registerGlobalReceiver(RequestSendBuildPayload.ID, (payload, context) -> {
             ServerPlayerEntity player = context.player();
             context.player().server.execute(() -> {
@@ -30,8 +36,6 @@ public class ServerNetwork {
 
             });
         });
-        PayloadTypeRegistry.playC2S().register(RequestLiveEffectsPayload.ID, RequestLiveEffectsPayload.CODEC);
-
         ServerPlayNetworking.registerGlobalReceiver(RequestLiveEffectsPayload.ID, (payload, context) -> {
             String targetName = payload.targetName();
             ServerPlayerEntity requester = context.player();
@@ -51,7 +55,6 @@ public class ServerNetwork {
             });
         });
 
-        PayloadTypeRegistry.playC2S().register(RequestSkillTreePayload.ID, RequestSkillTreePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestSkillTreePayload.ID, (payload, context) -> {
             ServerPlayerEntity requester = context.player();
             String targetName = payload.targetName();

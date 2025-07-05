@@ -3,7 +3,6 @@ package net.pixeldreamstudios.showmeyourbuild.network;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.ClickEvent;
@@ -19,9 +18,6 @@ import java.util.Optional;
 @Environment(EnvType.CLIENT)
 public class ClientNetwork {
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(SendBuildSnapshotPayload.ID, SendBuildSnapshotPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(SendSkillTreeSnapshotPayload.ID, SendSkillTreeSnapshotPayload.CODEC);
-
         ClientPlayNetworking.registerGlobalReceiver(SendSkillTreeSnapshotPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 String playerName = payload.playerName();
@@ -67,8 +63,6 @@ public class ClientNetwork {
             });
         });
 
-        PayloadTypeRegistry.playS2C().register(SendLiveEffectsPayload.ID, SendLiveEffectsPayload.CODEC);
-
         ClientPlayNetworking.registerGlobalReceiver(SendLiveEffectsPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 String playerName = payload.playerName();
@@ -77,5 +71,6 @@ public class ClientNetwork {
                 net.pixeldreamstudios.showmeyourbuild.client.LiveEffectStore.save(playerName, effectData);
             });
         });
+
     }
 }

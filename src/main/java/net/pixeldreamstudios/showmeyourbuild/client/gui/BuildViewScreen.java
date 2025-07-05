@@ -285,19 +285,20 @@
 
                 BuildViewModelRenderer.drawEntity(centerX, adjustedCenterY + 55, 50, modelYaw, snapshotPlayer != null ? snapshotPlayer : player);
     
-    
-                String name = displayNameOverride != null ? displayNameOverride : player.getName().getString();
-                String title = name + "'s Build";
-                int titleWidth = textRenderer.getWidth(title);
-    
-                context.drawTextWithShadow(
-                        textRenderer,
-                        Text.literal(title),
-                        centerX - (titleWidth / 2),
-                        adjustedCenterY - 55,
-                        0xFFFFFF
-                );
-    
+                if(snapshot != null) {
+                    String name = displayNameOverride != null ? displayNameOverride : player.getName().getString();
+
+                    String title = name + "'s Build";
+                    int titleWidth = textRenderer.getWidth(title);
+
+                    context.drawTextWithShadow(
+                            textRenderer,
+                            Text.literal(title),
+                            centerX - (titleWidth / 2),
+                            adjustedCenterY - 55,
+                            0xFFFFFF
+                    );
+                }
             } else if (currentView == ViewMode.STATS) {
                 if (snapshot == null && ModCompat.ATTRIBUTE_PANEL_LOADED) {
                     NbtCompound attrNbt = AttributePanelAPI.getAttributeSnapshot(player);
