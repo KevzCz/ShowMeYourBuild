@@ -8,15 +8,18 @@
     import net.minecraft.client.MinecraftClient;
     import net.minecraft.client.gui.DrawContext;
     import net.minecraft.client.gui.screen.Screen;
+    import net.minecraft.client.sound.PositionedSoundInstance;
     import net.minecraft.entity.effect.StatusEffectInstance;
     import net.minecraft.entity.player.PlayerEntity;
     import net.minecraft.item.ItemStack;
     import net.minecraft.nbt.NbtCompound;
     import net.minecraft.nbt.NbtElement;
+    import net.minecraft.sound.SoundEvents;
     import net.minecraft.text.Text;
     import net.minecraft.util.Identifier;
     import net.minecraft.util.math.MathHelper;
     import net.pixeldreamstudios.attributepanel.api.AttributePanelAPI;
+    import net.pixeldreamstudios.showmeyourbuild.Showmeyourbuild;
     import net.pixeldreamstudios.showmeyourbuild.client.BonusDataStore;
     import net.pixeldreamstudios.showmeyourbuild.client.LiveEffectStore;
     import net.pixeldreamstudios.showmeyourbuild.client.renderer.*;
@@ -33,6 +36,7 @@
         private long statsToggleTime = 0;
         private static final int BOUNCE_HEIGHT = 5;
         private long lastEffectRequestTime = 0;
+        private boolean wasHoveringPotions = false;
         private static final long EFFECT_REQUEST_COOLDOWN_MS = 1000;
         public static final Identifier BACKGROUND_TEXTURE = Identifier.of("showmeyourbuild", "textures/gui/gui2.png");
         public static final Identifier SLOT_BACKGROUND = Identifier.of("showmeyourbuild", "textures/gui/slot_gui.png");
@@ -339,6 +343,11 @@
 
 
             if (hoveringPotions) {
+                if (!wasHoveringPotions) {
+                    MinecraftClient.getInstance().getSoundManager().play(
+                            PositionedSoundInstance.master(SoundEvents.BLOCK_BREWING_STAND_BREW, 1f, 1f)
+                    );
+                }
                 PlayerEntity effectSource = snapshotPlayer != null ? snapshotPlayer : player;
                 boolean isSnapshot = snapshotPlayer != null;
 
@@ -418,6 +427,7 @@
                     context.drawTooltip(textRenderer, Text.literal("No active effects"), mouseX, mouseY);
                 }
             }
+            wasHoveringPotions = hoveringPotions;
         }
     
         @Override
@@ -449,7 +459,9 @@
                 if (button == 0 &&
                         mouseX >= skillBtnX && mouseX < skillBtnX + 16 &&
                         mouseY >= skillBtnY && mouseY < skillBtnY + 16) {
-    
+                    MinecraftClient.getInstance().getSoundManager().play(
+                            PositionedSoundInstance.master(Showmeyourbuild.SWORD_UNSHEATH, 1.0f, 1.0f)
+                    );
                     if (snapshot != null) {
                         var preloadedCategories = CategoryCache.getAll();
                         var maybeFirst = preloadedCategories.keySet().stream().findFirst();
@@ -467,7 +479,9 @@
             if (button == 0 &&
                     mouseX >= statsBtnX && mouseX < statsBtnX + 16 &&
                     mouseY >= statsBtnY && mouseY < statsBtnY + 16) {
-
+                MinecraftClient.getInstance().getSoundManager().play(
+                        PositionedSoundInstance.master(SoundEvents.ITEM_BOOK_PAGE_TURN, 1.0f, 1.0f)
+                );
                 boolean switchingToStats = this.currentView == ViewMode.BUILD;
                 this.currentView = switchingToStats ? ViewMode.STATS : ViewMode.BUILD;
                 if (switchingToStats) statsToggleTime = System.currentTimeMillis();
@@ -484,6 +498,9 @@
             if (mouseX >= bonusBtnX && mouseX < bonusBtnX + 16 &&
                     mouseY >= bonusBtnY && mouseY < bonusBtnY + 16) {
                 showBonusPanel = !showBonusPanel;
+                MinecraftClient.getInstance().getSoundManager().play(
+                        PositionedSoundInstance.master(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.2f)
+                );
                 return true;
             }
             if (super.mouseClicked(mouseX, mouseY, button)) return true;

@@ -1,0 +1,8 @@
+{
+  "sword_unsheath": {
+    "category": "player",
+    "sounds": [
+      "showmeyourbuild:sword_unsheath"
+    ]
+  }
+}
