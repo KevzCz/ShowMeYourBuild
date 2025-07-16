@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "showmeyourbuild",
 	"version": "${version}",
-	"name": "showmeyourbuild",
+	"name": "Show Me Your Build",
 	"description": "Show your friends your build!",
 	"authors": [
 		"KevzCz"
