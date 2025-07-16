@@ -1,3 +1,4 @@
+https://www.curseforge.com/minecraft/mc-mods/show-me-your-build
 # SHOW ME YOUR BUILD
 
 A mod used for showing your builds to your friends!
