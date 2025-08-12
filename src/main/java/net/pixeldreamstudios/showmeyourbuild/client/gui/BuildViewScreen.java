@@ -172,14 +172,13 @@
                 context.drawTexture(SKILL_BUTTON, skillBtnX, skillBtnY, 0, 0, 16, 16, 16, 16);
     
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    
-                if (hoveringSkill & ModCompat.PUFFISH_LOADED) {
-                    context.drawTooltip(textRenderer, Text.literal("Skills"), mouseX, mouseY);
-                } else if (hoveringSkill & !ModCompat.PUFFISH_LOADED) {
-                    context.drawTooltip(textRenderer, Text.literal("Install Puffisher's Skills"), mouseX, mouseY);
-                }
 
-    
+            if (hoveringSkill & ModCompat.PUFFISH_LOADED) {
+                context.drawTooltip(textRenderer, Text.translatable("gui.showmeyourbuild.skills"), mouseX, mouseY);
+            } else if (hoveringSkill & !ModCompat.PUFFISH_LOADED) {
+                context.drawTooltip(textRenderer, Text.translatable("gui.showmeyourbuild.install_puffish_skills"), mouseX, mouseY);
+            }
+
             int statsBtnX = centerX + 120 - 21;
             int statsBtnY = centerY + verticalOffset + 20;
             int statsBtnSize = 16;
@@ -198,11 +197,10 @@
             RenderSystem.setShaderTexture(0, rightButtonIcon);
             context.drawTexture(rightButtonIcon, statsBtnX, statsBtnY, 0, 0, 16, 16, 16, 16);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    
             if (hoveringStats) {
                 context.drawTooltip(
                         textRenderer,
-                        Text.literal(currentView == ViewMode.BUILD ? "Stats" : "Build"),
+                        Text.translatable(currentView == ViewMode.BUILD ? "gui.showmeyourbuild.stats" : "gui.showmeyourbuild.build"),
                         mouseX,
                         mouseY
                 );
@@ -266,9 +264,9 @@
                 context.drawTexture(BONUSES_VIEWER, bonusBtnX, bonusBtnY, 0, 0, 16, 16, 16, 16);
     
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    
+
                 if (hoveringBonus) {
-                    context.drawTooltip(textRenderer, Text.literal("Attribute Bonuses"), mouseX, mouseY);
+                    context.drawTooltip(textRenderer, Text.translatable("gui.showmeyourbuild.attribute_bonuses"), mouseX, mouseY);
                 }
 
                 if (showBonusPanel) {
@@ -284,21 +282,14 @@
                     BonusesPanelRenderer.render(context, panelX, panelY, bonusPanelWidth, textRenderer, mouseX, mouseY);
                 }
 
-
-
-
                 BuildViewModelRenderer.drawEntity(centerX, adjustedCenterY + 55, 50, modelYaw, snapshotPlayer != null ? snapshotPlayer : player);
-    
+
                 if(snapshot != null) {
                     String name = displayNameOverride != null ? displayNameOverride : player.getName().getString();
-
-                    String title = name + "'s Build";
-                    int titleWidth = textRenderer.getWidth(title);
-
                     context.drawTextWithShadow(
                             textRenderer,
-                            Text.literal(title),
-                            centerX - (titleWidth / 2),
+                            Text.translatable("gui.showmeyourbuild.player_build", name),
+                            centerX - (textRenderer.getWidth(Text.translatable("gui.showmeyourbuild.player_build", name)) / 2),
                             adjustedCenterY - 55,
                             0xFFFFFF
                     );
@@ -321,8 +312,7 @@
                     alphaRatio = MathHelper.clamp(alphaRatio, 0.0f, 1.0f);
                     int alpha = (int) (alphaRatio * 255);
                     int color = (alpha << 24) | 0xFFFFFF;
-    
-                    String msg = "Scroll down to see more ↓";
+                    String msg = Text.translatable("gui.showmeyourbuild.scroll_for_more").getString();
                     int msgWidth = textRenderer.getWidth(msg);
                     int msgX = centerX - msgWidth / 2;
                     int msgY = centerY + 90 + (int) bounce;
@@ -424,7 +414,7 @@
                         y += lineHeight;
                     }
                 } else {
-                    context.drawTooltip(textRenderer, Text.literal("No active effects"), mouseX, mouseY);
+                    context.drawTooltip(textRenderer, Text.translatable("gui.showmeyourbuild.no_active_effects"), mouseX, mouseY);
                 }
             }
             wasHoveringPotions = hoveringPotions;

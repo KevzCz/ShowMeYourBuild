@@ -1,6 +1,10 @@
 {
-  "key.showmeyourbuild.inspect_build": "Inspect Player",
-  "key.showmeyourbuild.inspect_open_build_screen": "Open Build",
-  "key.showmeyourbuild.send_build": "Send Build",
-  "category.showmeyourbuild": "Show me your Build"
+  "gui.showmeyourbuild.skills": "Skills",
+  "gui.showmeyourbuild.install_puffish_skills": "Install Puffisher's Skills",
+  "gui.showmeyourbuild.stats": "Stats",
+  "gui.showmeyourbuild.build": "Build",
+  "gui.showmeyourbuild.attribute_bonuses": "Attribute Bonuses",
+  "gui.showmeyourbuild.no_active_effects": "No active effects",
+  "gui.showmeyourbuild.scroll_for_more": "Scroll down to see more ↓",
+  "gui.showmeyourbuild.player_build": "%s's Build"
 }
