@@ -49,6 +49,8 @@ dependencies {
 	modCompileOnly files("libs/puffish_skills-0.16.3-1.21-fabric.jar")
 	// Kev's Attributes Panel support
 	modImplementation files("libs/kevs-attributes-panel-1.1.3.jar")
+	// Compat
+	modImplementation files("libs/icon-leading-tooltip-1.0.2.jar")
 }
 
 processResources {
