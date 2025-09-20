@@ -6,5 +6,9 @@
   "gui.showmeyourbuild.attribute_bonuses": "Attribute Bonuses",
   "gui.showmeyourbuild.no_active_effects": "No active effects",
   "gui.showmeyourbuild.scroll_for_more": "Scroll down to see more ↓",
-  "gui.showmeyourbuild.player_build": "%s's Build"
+  "gui.showmeyourbuild.player_build": "%s's Build",
+  "category.showmeyourbuild" : "Show Me Your Build",
+  "key.showmeyourbuild.inspect_build" : "Inspect Build",
+  "key.showmeyourbuild.open_build_screen" : "Open Build Screen",
+  "key.showmeyourbuild.send_build" : "Send Build"
 }
