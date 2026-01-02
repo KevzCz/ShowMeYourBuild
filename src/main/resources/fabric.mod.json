@@ -31,7 +31,7 @@
 		"minecraft": "~1.21.1",
 		"java": ">=21",
 		"fabric-api": "*",
-		"kevs-attributes-panel": "*",
+		"kevs_attributes_panel": ">=1.2.0",
 		"icon-leading-tooltip": "*"
 	}
 }
